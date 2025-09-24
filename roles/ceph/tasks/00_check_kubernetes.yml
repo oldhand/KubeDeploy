@@ -1,0 +1,24 @@
+---
+- name: 显示当前主机的系统信息
+  ansible.builtin.debug:
+    msg: |
+      操作系统: {{ ansible_distribution }}
+      版本: {{ ansible_distribution_version }}
+      CPU架构: {{ ansible_architecture }}
+
+- name: 检查Kubernetes集群是否已部署
+  kubernetes.core.k8s_info:
+    kind: Node
+    api_version: v1
+  register: k8s_nodes
+  failed_when: false
+  run_once: true
+
+- name: 验证Kubernetes集群可用性
+  ansible.builtin.assert:
+    that:
+      - k8s_nodes.resources is defined
+      - k8s_nodes.resources | length > 0
+    success_msg: "Kubernetes集群已部署，发现{{ k8s_nodes.resources | length }}个节点"
+    fail_msg: "未检测到可用的Kubernetes集群，请先部署集群"
+  run_once: true

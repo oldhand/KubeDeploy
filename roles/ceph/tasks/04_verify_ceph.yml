@@ -1,25 +1,4 @@
-#- name: 验证部署（仅在主节点上执行）
-#  hosts: masters
-#  tasks:
-#    - name: 检查 Ceph 集群状态
-#      shell: kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
-#      register: ceph_status
-#
-#    - name: 显示 Ceph 集群状态
-#      debug:
-#        var: ceph_status.stdout_lines
-#
-#    - name: 检查存储类
-#      shell: kubectl get sc
-#      register: sc_status
-#
-#    - name: 显示存储类状态
-#      debug:
-#        var: sc_status.stdout_lines
-
-
 ---
-
 
 - name: "检测 Ceph Mon 节点就绪状态"
   kubernetes.core.k8s_info:

@@ -1,0 +1,93 @@
+---
+- name: "等待 Grafana Deployment 就绪"
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: grafana
+    namespace: prometheus
+  register: grafana_deploy_status
+  until: >
+    grafana_deploy_status.resources[0].status.readyReplicas is defined and
+    grafana_deploy_status.resources[0].status.readyReplicas == 1
+  retries: 20  # 重试 20 次
+  delay: 10    # 每次间隔 10 秒
+  run_once: true
+
+- name: "等待 Grafana API 可访问（检查健康状态）"
+  uri:
+    url: "http://{{ ansible_host }}:30093/api/health"  # ansible_host 是目标节点IP
+    method: GET
+    status_code: 200
+    validate_certs: no  # 离线环境关闭证书验证
+  register: grafana_api_health
+  until: grafana_api_health.status == 200
+  retries: 15
+  delay: 8
+  run_once: true
+
+- name: 定义需要导入的Grafana仪表盘
+  set_fact:
+    grafana_dashboards:
+      - name: "k8s-cluster-monitoring"
+        file: "k8s-cluster-monitoring.json"
+      - name: "k8s-node-monitoring"
+        file: "k8s-node-monitoring.json"
+  run_once: true
+
+- name: 复制仪表盘文件到目标节点
+  copy:
+    src: "files/dashboards/{{ item.file }}"
+    dest: "/tmp/{{ item.file }}"
+  loop: "{{ grafana_dashboards }}"
+  loop_control:
+    label: "复制 {{ item.name }} 文件"
+  run_once: true
+
+- name: 读取仪表盘内容
+  slurp:
+    src: "/tmp/{{ item.file }}"
+  register: dashboard_contents
+  loop: "{{ grafana_dashboards }}"
+  loop_control:
+    label: "读取 {{ item.name }} 内容"
+  delegate_to: localhost
+  run_once: true
+
+- name: 导入仪表盘
+  uri:
+    url: "http://{{ ansible_host }}:30093/api/dashboards/import"
+    method: POST
+    user: "admin"
+    password: "admin"
+    force_basic_auth: yes
+    body_format: json
+    validate_certs: no
+    status_code: [200, 201]
+    body:
+      dashboard: "{{ item.content | b64decode | from_json }}"
+      overwrite: true
+      inputs:
+        - name: "DS_PROMETHEUS"
+          type: "datasource"
+          pluginVersion: "1.0.0"
+          value: "Prometheus"
+  loop: "{{ dashboard_contents.results }}"
+  loop_control:
+    label: "导入 {{ item.item.name }} 仪表盘"
+  run_once: true
+  register: import_results
+
+- name: 显示每个仪表盘的导入结果
+  debug:
+    msg: "成功导入 {{ item.item.item.name }} 仪表盘"
+  loop: "{{ import_results.results }}"
+  loop_control:
+    label: "结果: {{ item.item.item.name }}"
+  when:
+    - is_master == 1
+    - item.status == 200 or item.status == 201
+
+- name: 显示所有仪表盘导入完成信息
+  debug:
+    msg: |
+      ✅ 仪表盘导入完成，访问地址: http://{{ ansible_host }}:30093
+  run_once: true

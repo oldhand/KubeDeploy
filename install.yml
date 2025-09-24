@@ -1,0 +1,10 @@
+---
+- hosts: k8s
+  gather_facts: yes
+  roles:
+#    # Install prometheus for k8s
+    - prometheus
+#     Install ceph for k8s
+#    - ceph
+
+

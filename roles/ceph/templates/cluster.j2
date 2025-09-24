@@ -1,0 +1,75 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: {{ ceph_cluster_name }}
+  namespace: {{ ceph_namespace }}
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v19.2.3
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  cephConfig:
+    global:
+      # 单节点环境：全局默认副本数（新存储池自动继承）
+      osd_pool_default_size: "1"
+      # 单节点环境：全局默认最小副本数（与 size 匹配）
+      osd_pool_default_min_size: "1"
+  # 1. 全局调度配置（对所有组件生效）
+  placement:
+    all:
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+  mon:
+    count: 3
+    allowMultiplePerNode: true
+  dashboard:
+    enabled: true
+    ssl: true
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    scheduleAlways: true  # 强制在节点就绪/不可调度时都部署 OSD
+    config:
+      osd_auto_discovery: "false"
+      bluestore_warn_on_old_sig: "false"
+      osd_force_format: "true"  # 强制格式化 /dev/sdb，清除旧数据
+      databaseSizeMB: "1024"
+      journalSizeMB: "1024"
+    nodes:
+{% for node in ceph_nodes %}
+    - name: "{{ node.name }}"
+      devices:
+  {% for device in node.devices %}
+        - name: "{{ device }}"
+{% endfor %}
+{% endfor %}
+  resources:
+    mon:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1000m"
+        memory: "2Gi"
+    osd:
+      requests:
+        cpu: "1000m"
+        memory: "4Gi"
+      limits:
+        cpu: "2000m"
+        memory: "8Gi"
+  network:
+    provider: host
+  crashCollector:
+    disable: false
+  cleanupPolicy:
+    confirmation: ""
+# 单节点部署需禁用一些高可用配置
+  mgr:
+    count: 3
+    allowMultiplePerNode: true

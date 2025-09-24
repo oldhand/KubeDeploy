@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-tools
+  namespace: rook-ceph # namespace:cluster
+  labels:
+    app: rook-ceph-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rook-ceph-tools
+  template:
+    metadata:
+      labels:
+        app: rook-ceph-tools
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: rook-ceph-default
+      containers:
+        - name: rook-ceph-tools
+          image: quay.io/ceph/ceph:v19.2.3
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Replicate the script from toolbox.sh inline so the ceph image
+              # can be run directly, instead of requiring the rook toolbox
+              CEPH_CONFIG="/etc/ceph/ceph.conf"
+              MON_CONFIG="/etc/rook/mon-endpoints"
+              KEYRING_FILE="/etc/ceph/keyring"
+              SECRET_FILE="/var/lib/rook-ceph-mon/secret.keyring"
+
+              # create a ceph config file in its default location so ceph/rados tools can be used
+              # without specifying any arguments
+              write_endpoints() {
+                endpoints=$(cat ${MON_CONFIG})
+
+                # filter out the mon names
+                # external cluster can have numbers or hyphens in mon names, handling them in regex
+                # shellcheck disable=SC2001
+                mon_endpoints=$(echo "${endpoints}"| sed 's/[a-z0-9_-]\+=//g')
+
+                DATE=$(date)
+                echo "$DATE writing mon endpoints to ${CEPH_CONFIG}: ${endpoints}"
+                  cat <<EOF > ${CEPH_CONFIG}
+              [global]
+              mon_host = ${mon_endpoints}
+
+              [client.admin]
+              keyring = ${KEYRING_FILE}
+              EOF
+              }
+
+              # watch the endpoints config file and update if the mon endpoints ever change
+              watch_endpoints() {
+                # get the timestamp for the target of the soft link
+                real_path=$(realpath ${MON_CONFIG})
+                initial_time=$(stat -c %Z "${real_path}")
+                while true; do
+                  real_path=$(realpath ${MON_CONFIG})
+                  latest_time=$(stat -c %Z "${real_path}")
+
+                  if [[ "${latest_time}" != "${initial_time}" ]]; then
+                    write_endpoints
+                    initial_time=${latest_time}
+                  fi
+
+                  sleep 10
+                done
+              }
+
+              rm -f ${KEYRING_FILE}
+
+              # 读取原始密钥，仅提取[client.admin]及其后的有效内容
+              # 并删除所有缩进（Ceph不允许keyring中有缩进）
+              sed -n '/\[client.admin\]/,$p' ${SECRET_FILE} | sed 's/^[ \t]*//' > ${KEYRING_FILE}
+
+              # 4. 验证keyring文件（可选，用于调试）
+              echo "Generated keyring content:"
+              cat ${KEYRING_FILE}
+
+              # write the initial config file
+              write_endpoints
+
+              # continuously update the mon endpoints if they fail over
+              watch_endpoints
+          imagePullPolicy: IfNotPresent
+          tty: true
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 2016
+            runAsGroup: 2016
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - mountPath: /etc/ceph
+              name: ceph-config
+            - name: mon-endpoint-volume
+              mountPath: /etc/rook
+            - name: ceph-admin-secret
+              mountPath: /var/lib/rook-ceph-mon
+              readOnly: true
+      volumes:
+        - name: ceph-admin-secret
+          secret:
+            secretName: rook-ceph-admin-keyring
+            optional: false
+            items:
+              - key: keyring
+                path: secret.keyring
+        - name: mon-endpoint-volume
+          configMap:
+            name: rook-ceph-mon-endpoints
+            items:
+              - key: data
+                path: mon-endpoints
+        - name: ceph-config
+          emptyDir: {}
+      tolerations:
+        - key: "node.kubernetes.io/unreachable"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 5
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"

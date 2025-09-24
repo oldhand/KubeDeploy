@@ -1,0 +1,112 @@
+#- name: 验证部署（仅在主节点上执行）
+#  hosts: masters
+#  tasks:
+#    - name: 检查 Ceph 集群状态
+#      shell: kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
+#      register: ceph_status
+#
+#    - name: 显示 Ceph 集群状态
+#      debug:
+#        var: ceph_status.stdout_lines
+#
+#    - name: 检查存储类
+#      shell: kubectl get sc
+#      register: sc_status
+#
+#    - name: 显示存储类状态
+#      debug:
+#        var: sc_status.stdout_lines
+
+
+---
+
+
+- name: "检测 Ceph Mon 节点就绪状态"
+  kubernetes.core.k8s_info:
+    kind: "Pod"
+    namespace: "rook-ceph"
+    label_selectors: ["app=rook-ceph-mon"]
+    field_selectors: ["status.phase=Running"]
+  register: mon_status
+  until: mon_status.resources | length > 0
+  retries: 30
+  delay: 10
+  run_once: true
+
+
+- name: "检测 Ceph OSD 节点就绪状态"
+  kubernetes.core.k8s_info:
+    kind: "Pod"
+    namespace: "rook-ceph"
+    label_selectors: ["app=rook-ceph-osd"]
+    field_selectors: ["status.phase=Running"]
+  register: osd_status
+  until: osd_status.resources | length > 0
+  retries: 100
+  delay: 10
+  run_once: true
+
+- name: 分发 Rook 部署文件
+  copy:
+    src: "examples/"
+    dest: "/tmp/rook-deploy/"
+    mode: '0644'
+
+- name: 部署 ceph toolbox.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/toolbox.yaml"
+    state: present
+  run_once: true
+
+- name: 等待Toolbox Pod就绪
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: rook-ceph
+    label_selectors: ["app=rook-ceph-tools"]
+    field_selectors: ["status.phase=Running"]
+  register: toolbox_pod
+  until: toolbox_pod.resources | length > 0
+  retries: 12
+  delay: 5
+  run_once: true
+
+
+- name: 提取Toolbox Pod名称
+  set_fact:
+    toolbox_pod_name: "{{ toolbox_pod.resources[0].metadata.name }}"
+  run_once: true
+
+
+- name: 生成 ceph 管理平台密码为 "!qaz2Wsx"
+  shell: kubectl exec -n rook-ceph {{ toolbox_pod_name }} -- bash -c "echo !qaz2Wsx > /tmp/dashboard-admin-password.txt"
+  register: ceph_health
+  run_once: true
+
+- name: 重置 ceph 管理平台(admin)的登录密码
+  shell: kubectl exec -n rook-ceph {{ toolbox_pod_name }} -- ceph dashboard ac-user-set-password admin -i /tmp/dashboard-admin-password.txt
+  register: ceph_health
+  run_once: true
+
+
+- name: 验证Ceph集群健康度
+  shell: kubectl -n rook-ceph exec {{ toolbox_pod_name }} -- ceph health
+  register: ceph_health
+  run_once: true
+
+- name: 显示最终验证结果
+  debug:
+    msg: |
+      Ceph集群部署与验证总结：
+      1. Ceph核心组件：全部就绪
+      2. Toolbox部署：{% if toolbox_pod.changed %} 成功创建{% else %} 已存在{% endif %}
+      3. Ceph健康度：{{ ceph_health.stdout }}
+  run_once: true
+
+
+- name: 验证操作
+  debug:
+    msg: |
+      kubectl exec -it -n rook-ceph {{ toolbox_pod_name }} -- bash
+      1. ceph health
+      2. ceph osd tree
+  run_once: true

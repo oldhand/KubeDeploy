@@ -1,0 +1,18 @@
+
+# Ceph 集群配置
+ceph_cluster_name: "rook-ceph"
+ceph_namespace: "rook-ceph"
+
+# Ceph 存储节点及设备配置 (使用设备方式)
+#ceph_nodes:
+#  - name: "k8s-node-1"
+#    devices: ["sdb"]
+#  - name: "k8s-node-2"
+#    devices: ["sdb"]
+#  - name: "k8s-node-3"
+#    devices: ["sdb"]
+
+# Ceph 存储节点及目录配置 (使用目录方式)
+ceph_nodes:
+  - name: "ubuntu2204kube01"
+    devices: ["sdb"]

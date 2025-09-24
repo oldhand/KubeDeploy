@@ -1,0 +1,87 @@
+---
+- name: 创建 Prometheus 命名空间
+  kubernetes.core.k8s:
+    name: prometheus
+    kind: Namespace
+    api_version: v1
+    state: present
+  run_once: true
+
+- name: 清理 prometheus 命名空间下的所有 Deployment
+  kubernetes.core.k8s:
+    kind: Deployment
+    namespace: prometheus
+    state: absent
+    all: true  # 删除该命名空间下所有 Deployment
+  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
+
+
+- name: 清理 prometheus 命名空间下的所有 Service
+  kubernetes.core.k8s:
+    kind: Service
+    namespace: prometheus
+    state: absent
+    all: true  # 删除该命名空间下所有 Service
+  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
+
+- name: 清理 prometheus 命名空间下的所有 DaemonSet
+  kubernetes.core.k8s:
+    kind: DaemonSet
+    namespace: prometheus
+    state: absent
+    all: true  # 删除该命名空间下所有 DaemonSet
+  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
+
+- name: 清理 prometheus 命名空间下的所有 Pod
+  kubernetes.core.k8s:
+    kind: Pod
+    namespace: prometheus
+    state: absent
+    all: true  # 删除该命名空间下所有 Pods
+  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
+
+- name: 复制 Prometheus serviceAccount 部署文件
+  copy:
+    src: "files/prometheus-serviceaccount.yaml"
+    dest: "/tmp/prometheus-serviceaccount.yaml"
+  run_once: true
+
+- name: 部署 Prometheus serviceAccount
+  kubernetes.core.k8s:
+    src: "/tmp/prometheus-serviceaccount.yaml"
+    state: present
+  run_once: true
+
+- name: 复制 Prometheus rbac 部署文件
+  copy:
+    src: "files/prometheus-rbac.yaml"
+    dest: "/tmp/prometheus-rbac.yaml"
+  run_once: true
+
+- name: 部署 Prometheus rbac
+  kubernetes.core.k8s:
+    src: "/tmp/prometheus-rbac.yaml"
+    state: present
+  run_once: true
+
+
+- name: 复制 Prometheus 部署文件
+  copy:
+    src: "files/prometheus-deploy.yaml"
+    dest: "/tmp/prometheus-deploy.yaml"
+  run_once: true
+
+- name: 创建 Prometheus 存储目录(/data/prometheus)
+  ansible.builtin.file:
+    path: /data/prometheus
+    state: directory
+    mode: '0777'
+    recurse: yes
+  run_once: true
+
+- name: 部署 Prometheus
+  kubernetes.core.k8s:
+    src: "/tmp/prometheus-deploy.yaml"
+    state: present
+  run_once: true
+

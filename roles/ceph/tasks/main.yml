@@ -1,4 +1,5 @@
 ---
+- include_tasks: 00_check_kubernetes.yml
 - include_tasks: 01_deploy_images.yml
 - include_tasks: 02_deploy_ceph.yml
 - include_tasks: 04_verify_ceph.yml

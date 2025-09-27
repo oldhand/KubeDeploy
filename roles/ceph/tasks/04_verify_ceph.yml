@@ -81,6 +81,12 @@
       3. Ceph健康度：{{ ceph_health.stdout }}
   run_once: true
 
+- name: 显示管理平台访问信息
+  debug:
+    msg: |
+      管理平台访问地址: https://{{ ansible_host }}:8443
+  run_once: true
+
 
 - name: 验证操作
   debug:
@@ -89,3 +95,6 @@
       1. ceph health
       2. ceph osd tree
   run_once: true
+
+
+

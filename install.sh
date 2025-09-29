@@ -45,8 +45,8 @@ elif [ "$cpu_arch" = "aarch64" ]; then
    fi
 fi
 
-#ansible-playbook -i hosts.ini install.yml -k
-ansible-playbook -i hosts.ini install.yml
+ansible-playbook -i hosts.ini install.yml -k
+
 
 
 

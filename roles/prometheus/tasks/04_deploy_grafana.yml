@@ -27,27 +27,6 @@
     recurse: yes
   run_once: true
 
-- name: 清理现有 Grafana 存储资源
-  kubernetes.core.k8s:
-    state: absent
-    definition: "{{ item }}"
-  loop:
-    - apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: grafana-pvc
-        namespace: prometheus
-    - apiVersion: v1
-      kind: PersistentVolume
-      metadata:
-        name: grafana-pv
-    - apiVersion: storage.k8s.io/v1
-      kind: StorageClass
-      metadata:
-        name: grafana-storage
-  run_once: true
-
-
 - name: 创建Grafana存储类
   kubernetes.core.k8s:
     state: present

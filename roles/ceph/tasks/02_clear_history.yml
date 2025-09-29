@@ -1,0 +1,56 @@
+#---
+- name: 清理 Ceph 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n {{ ceph_namespace }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n {{ ceph_namespace }} --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "{{ ceph_cluster_name }}" }
+    - { kind: StatefulSet, name: "{{ ceph_cluster_name }}" }
+    - { kind: ReplicaSet, name: "{{ ceph_cluster_name }}" }
+    - { kind: DaemonSet, name: "{{ ceph_cluster_name }}" }
+    - { kind: Job, name: "{{ ceph_cluster_name }}" }
+    - { kind: Pod, name: "{{ ceph_cluster_name }}" }
+    - { kind: Service, name: "{{ ceph_cluster_name }}" }
+    - { kind: ConfigMap, name: "{{ ceph_cluster_name }}" }
+    - { kind: Secret, name: "{{ ceph_cluster_name }}" }
+    - { kind: ServiceAccount, name: "{{ ceph_cluster_name }}" }
+    - { kind: PersistentVolumeClaim, name: "{{ ceph_cluster_name }}" }
+  failed_when: false
+  run_once: true
+
+- name: 清理 Ceph 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "{{ ceph_cluster_name }}" }
+    - { kind: ClusterRole, name: "{{ ceph_cluster_name }}" }
+    - { kind: ClusterRoleBinding, name: "{{ ceph_cluster_name }}" }
+  failed_when: false
+  run_once: true
+
+
+
+
+- name: 清理 Ceph 其他资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n {{ ceph_namespace }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n {{ ceph_namespace }} --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "ceph" }
+    - { kind: StatefulSet, name: "ceph" }
+    - { kind: ReplicaSet, name: "ceph" }
+    - { kind: DaemonSet, name: "ceph" }
+    - { kind: Job, name: "ceph" }
+    - { kind: Pod, name: "ceph" }
+    - { kind: Service, name: "ceph" }
+    - { kind: ConfigMap, name: "ceph" }
+    - { kind: Secret, name: "ceph" }
+    - { kind: ServiceAccount, name: "ceph" }
+    - { kind: PersistentVolumeClaim, name: "ceph" }
+  failed_when: false
+  run_once: true
+

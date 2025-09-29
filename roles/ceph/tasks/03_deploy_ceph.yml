@@ -1,0 +1,110 @@
+---
+
+- name: 清理节点上的Rook数据目录
+  file:
+    path: "{{ item }}"
+    state: absent
+    force: yes
+  loop:
+    - /var/lib/rook
+    - /etc/rook
+    - /var/run/ceph
+    - /var/log/ceph
+    - /tmp/rook
+
+- name: 分发 Rook 部署文件
+  copy:
+    src: "examples/"
+    dest: "/tmp/rook-deploy/"
+    mode: '0644'
+
+- name: 创建 ceph 命名空间
+  kubernetes.core.k8s:
+    name: "{{ ceph_namespace }}"
+    kind: Namespace
+    api_version: v1
+    state: present
+    wait: yes
+  run_once: true
+
+
+- name: 复制 ceph serviceAccount 部署文件
+  copy:
+    src: "files/ceph-serviceaccount.yaml"
+    dest: "/tmp/rook-deploy/ceph-serviceaccount.yaml"
+  run_once: true
+
+- name: 部署 ceph serviceAccount
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/ceph-serviceaccount.yaml"
+    state: present
+    wait: yes
+  run_once: true
+
+- name: 部署 ceph crds.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/crds.yaml"
+    state: present
+  run_once: true
+
+- name: 部署 ceph common.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/common.yaml"
+    state: present
+  run_once: true
+
+- name: 部署 ceph csi-operator.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/csi-operator.yaml"
+    state: present
+  run_once: true
+
+- name: 部署 ceph operator.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/operator.yaml"
+    state: present
+  run_once: true
+
+- name: 等待 Rook Operator 就绪
+  shell: kubectl wait --for=condition=ready pod -l app=rook-ceph-operator -n {{ ceph_namespace }}  --timeout=300s
+  run_once: true
+
+- name: 生成 Ceph 集群配置文件
+  template:
+    src: cluster-single-node.j2
+    dest: /tmp/rook-deploy/cluster.yaml
+    mode: '0644'
+  run_once: true
+
+- name: 部署 Ceph 集群
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/cluster.yaml"
+    state: present
+  run_once: true
+
+- name: "检测 Rook-Ceph Operator 就绪状态"
+  kubernetes.core.k8s_info:
+    kind: "Deployment"
+    namespace: "rook-ceph"
+    label_selectors: ["app=rook-ceph-operator"]
+  register: operator_status
+  until: >
+    operator_status.resources[0].status.readyReplicas | default(0) == 
+    operator_status.resources[0].spec.replicas | default(0)
+  retries: 30
+  delay: 10
+  run_once: true
+
+
+- name: 部署存储类 csi/rbd/storageclass.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/csi/rbd/storageclass.yaml"
+    state: present
+  run_once: true
+
+- name: 部署存储类 csi/cephfs/storageclass.yaml
+  kubernetes.core.k8s:
+    src: "/tmp/rook-deploy/csi/cephfs/storageclass.yaml"
+    state: present
+  run_once: true
+

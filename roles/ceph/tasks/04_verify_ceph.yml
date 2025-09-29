@@ -74,26 +74,26 @@
 
 - name: 显示最终验证结果
   debug:
-    msg: |
-      Ceph集群部署与验证总结：
-      1. Ceph核心组件：全部就绪
-      2. Toolbox部署：{% if toolbox_pod.changed %} 成功创建{% else %} 已存在{% endif %}
-      3. Ceph健康度：{{ ceph_health.stdout }}
+    msg:
+      - "Ceph集群部署与验证总结："
+      - "1. Ceph核心组件：全部就绪"
+      - "2. Toolbox部署：{% if toolbox_pod.changed %} 成功创建{% else %} 已存在{% endif %}"
+      - "3. Ceph健康度：{{ ceph_health.stdout }}"
   run_once: true
 
 - name: 显示管理平台访问信息
   debug:
-    msg: |
-      管理平台访问地址: https://{{ ansible_host }}:8443
+    msg:
+      - "管理平台访问地址: https://{{ ansible_host }}:8443"
   run_once: true
 
 
 - name: 验证操作
   debug:
-    msg: |
-      kubectl exec -it -n rook-ceph {{ toolbox_pod_name }} -- bash
-      1. ceph health
-      2. ceph osd tree
+    msg:
+      - "kubectl exec -it -n rook-ceph {{ toolbox_pod_name }} -- bash"
+      - "1. ceph health"
+      - "2. ceph osd tree"
   run_once: true
 
 

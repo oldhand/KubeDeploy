@@ -44,7 +44,7 @@ spec:
 {% for node in ceph_nodes %}
     - name: "{{ node.name }}"
       devices:
-  {% for device in node.devices %}
+{% for device in node.devices %}
         - name: "{{ device }}"
 {% endfor %}
 {% endfor %}

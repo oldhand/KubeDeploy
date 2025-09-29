@@ -1,0 +1,64 @@
+#---
+- name: 清理 Prometheus 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "prometheus" }
+    - { kind: StatefulSet, name: "prometheus" }
+    - { kind: ReplicaSet, name: "prometheus" }
+    - { kind: DaemonSet, name: "prometheus" }
+    - { kind: Job, name: "prometheus" }
+    - { kind: Pod, name: "prometheus" }
+    - { kind: Service, name: "prometheus" }
+    - { kind: ConfigMap, name: "prometheus" }
+    - { kind: Secret, name: "prometheus" }
+    - { kind: ServiceAccount, name: "prometheus" }
+    - { kind: PersistentVolumeClaim, name: "prometheus" }
+  failed_when: false
+  run_once: true
+
+- name: 清理 App 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "prometheus" }
+    - { kind: ClusterRole, name: "prometheus" }
+    - { kind: ClusterRoleBinding, name: "prometheus" }
+  failed_when: false
+  run_once: true
+
+
+- name: 清理 Grafana 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "grafana" }
+    - { kind: StatefulSet, name: "grafana" }
+    - { kind: ReplicaSet, name: "grafana" }
+    - { kind: Job, name: "grafana" }
+    - { kind: Pod, name: "grafana" }
+    - { kind: Service, name: "grafana" }
+    - { kind: ConfigMap, name: "grafana" }
+    - { kind: Secret, name: "grafana" }
+    - { kind: PersistentVolumeClaim, name: "grafana" }
+  failed_when: false
+  run_once: true
+
+
+- name: 清理 Grafana 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "grafana" }
+    - { kind: StorageClass, name: "grafana" }
+  failed_when: false
+  run_once: true
+

@@ -88,6 +88,6 @@
 
 - name: 显示所有仪表盘导入完成信息
   debug:
-    msg: |
-      ✅ 仪表盘导入完成，访问地址: http://{{ ansible_host }}:30093
+    msg:
+      - "✅ 仪表盘导入完成，访问地址: http://{{ ansible_host }}:30093"
   run_once: true

@@ -1,10 +1,10 @@
 ---
 - name: 显示当前主机的系统信息
   ansible.builtin.debug:
-    msg: |
-      操作系统: {{ ansible_distribution }}
-      版本: {{ ansible_distribution_version }}
-      CPU架构: {{ ansible_architecture }}
+    msg:
+      - "操作系统: {{ ansible_distribution }}"
+      - "版本: {{ ansible_distribution_version }}"
+      - "CPU架构: {{ ansible_architecture }}"
 
 - name: 检查Kubernetes集群是否已部署
   kubernetes.core.k8s_info:

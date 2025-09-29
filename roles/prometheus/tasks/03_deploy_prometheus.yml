@@ -15,31 +15,6 @@
     all: true  # 删除该命名空间下所有 Deployment
   run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
 
-
-- name: 清理 prometheus 命名空间下的所有 Service
-  kubernetes.core.k8s:
-    kind: Service
-    namespace: prometheus
-    state: absent
-    all: true  # 删除该命名空间下所有 Service
-  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
-
-- name: 清理 prometheus 命名空间下的所有 DaemonSet
-  kubernetes.core.k8s:
-    kind: DaemonSet
-    namespace: prometheus
-    state: absent
-    all: true  # 删除该命名空间下所有 DaemonSet
-  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
-
-- name: 清理 prometheus 命名空间下的所有 Pod
-  kubernetes.core.k8s:
-    kind: Pod
-    namespace: prometheus
-    state: absent
-    all: true  # 删除该命名空间下所有 Pods
-  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
-
 - name: 复制 Prometheus serviceAccount 部署文件
   copy:
     src: "files/prometheus-serviceaccount.yaml"

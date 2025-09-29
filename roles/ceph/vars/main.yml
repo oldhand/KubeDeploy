@@ -15,4 +15,6 @@ ceph_namespace: "rook-ceph"
 # Ceph 存储节点及目录配置 (使用目录方式)
 ceph_nodes:
   - name: "oe2203m01"
-    devices: ["nvme2n1p4"]
+    devices:
+      - "nvme2n1p3"
+      - "nvme2n1p4"

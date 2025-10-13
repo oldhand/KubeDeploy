@@ -5,6 +5,6 @@
 #     Install prometheus for k8s
     - prometheus
 #     Install ceph for k8s
-    - ceph
+#    - ceph
 
 

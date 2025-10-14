@@ -31,6 +31,8 @@
         file: "k8s-cluster-monitoring.json"
       - name: "k8s-node-monitoring"
         file: "k8s-node-monitoring.json"
+      - name: "k8s_gpu_monitoring"
+        file: "k8s_gpu_monitoring.json"
   run_once: true
 
 - name: 复制仪表盘文件到目标节点

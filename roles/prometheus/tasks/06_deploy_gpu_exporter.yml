@@ -1,0 +1,166 @@
+---
+- name: 检查镜像文件 nvidia_gpu_exporter_1.3.2.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/nvidia_gpu_exporter_1.3.2.tar"
+  register: target_tar_stat
+  run_once: true
+
+- name: 解压镜像文件 nvidia_gpu_exporter_1.3.2.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/nvidia_gpu_exporter_1.3.2.tar.gz -C {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/
+  run_once: true  # 控制节点执行一次
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+
+- name: 复制 nvidia_gpu_exporter 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/nvidia_gpu_exporter_1.3.2.tar"
+    dest: "/tmp/nvidia_gpu_exporter_1.3.2.tar"
+    mode: 0644
+  when: is_worker == 1
+
+- name: 加载 nvidia_gpu_exporter 镜像到Docker
+  shell: "docker load -i /tmp/nvidia_gpu_exporter_1.3.2.tar"
+  when: is_worker == 1
+
+
+- name: 检查 nvidia-smi 命令是否存在（验证驱动）
+  ansible.builtin.command: "which nvidia-smi"
+  register: nvidia_smi_check
+  failed_when: nvidia_smi_check.rc != 0
+  ignore_errors: yes
+  changed_when: false
+
+- name: 检查节点是否有NVIDIA GPU（PCI厂商ID 10de）
+  shell: "/usr/bin/lspci -n | grep -i '10de'"  # 10de是NVIDIA的PCI厂商ID
+  register: has_nvidia_gpu
+  changed_when: false
+  failed_when: false
+  when: nvidia_smi_check.rc == 0
+
+
+- name: 获取节点主机名（用于K8s节点标签操作）
+  command: hostname
+  register: node_hostname
+  changed_when: false
+  when:
+    - nvidia_smi_check.rc == 0
+    - has_nvidia_gpu.rc == 0
+
+- name: 为GPU节点添加标签 nvidia.com/gpu=true
+  command: >
+    /usr/bin/kubectl label nodes {{ node_hostname.stdout }} nvidia.com/gpu=true --overwrite
+  when:
+    - nvidia_smi_check.rc == 0
+    - has_nvidia_gpu.rc == 0
+  register: label_pci
+  changed_when: "'labeled' in label_pci.stdout"
+
+- name: 清理 nvidia_gpu_exporter 资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: DaemonSet, name: "nvidia-gpu-exporter" }
+    - { kind: Pod, name: "nvidia-gpu-exporter" }
+  failed_when: false
+  run_once: true
+
+- name: 部署 nvidia_gpu_exporter DaemonSet
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: nvidia-gpu-exporter
+        namespace: prometheus
+      spec:
+        selector:
+          matchLabels:
+            app: nvidia-gpu-exporter
+        template:
+          metadata:
+            labels:
+              app: nvidia-gpu-exporter
+          spec:
+            nodeSelector: # 只在有GPU标签的节点运行
+              nvidia.com/gpu: "true"
+            tolerations:
+              # 容忍 control-plane 节点的 NoSchedule 污点
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+              # 可选：如果节点有其他污点（如 master 节点的旧标签），可一并容忍
+              - key: "node-role.kubernetes.io/master"
+                operator: "Exists"
+                effect: "NoSchedule"
+            securityContext:
+              runAsUser: 0  # 运行在root用户（避免权限不足）
+            containers:
+              - name: nvidia-gpu-exporter
+                image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/utkuozdemir/nvidia_gpu_exporter:1.3.2
+                imagePullPolicy: IfNotPresent
+                ports:
+                  - containerPort: 9835  # 默认 metrics 端口
+                    name: metrics
+                    protocol: TCP
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 500m
+                    memory: 256Mi
+                    nvidia.com/gpu: 1
+                volumeMounts:
+                  - name: nvidia-devices
+                    mountPath: /dev
+                    readOnly: false
+                  - name: nvidia-smi
+                    mountPath: /usr/bin/nvidia-smi
+                    readOnly: true
+                  - name: nvidia-lib
+                    mountPath: /usr/lib/x86_64-linux-gnu/
+                    readOnly: true
+                env:
+                  - name: LD_LIBRARY_PATH
+                    value: /usr/lib/x86_64-linux-gnu/
+            volumes:
+              - name: nvidia-devices
+                hostPath:
+                  path: /dev
+                  type: Directory
+              - name: nvidia-smi
+                hostPath:
+                  path: /usr/bin/nvidia-smi
+                  type: File
+              - name: nvidia-lib
+                hostPath:
+                  path: /usr/lib/x86_64-linux-gnu/
+                  type: Directory
+  when:
+    - nvidia_smi_check.rc == 0
+    - has_nvidia_gpu.rc == 0
+
+- name: 创建 nvidia_gpu_exporter NodePort (30094) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: nvidia-gpu-exporter
+        namespace: prometheus
+      spec:
+        selector:
+          app: nvidia-gpu-exporter
+        ports:
+          - port: 9835
+            targetPort: 9835
+            nodePort: 30094
+        type: NodePort
+  when:
+    - nvidia_smi_check.rc == 0
+    - has_nvidia_gpu.rc == 0
+  run_once: true

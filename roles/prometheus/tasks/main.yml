@@ -5,3 +5,4 @@
 - include_tasks: 03_deploy_prometheus.yml
 - include_tasks: 04_deploy_grafana.yml
 - include_tasks: 05_deploy_dashboards.yml
+- include_tasks: 06_deploy_gpu_exporter.yml

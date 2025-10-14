@@ -160,6 +160,25 @@ data:
           regex: ([^:]+)(?::\d+)?;(\d+)
           replacement: $1:$2
           target_label: __address__
+    
+      - job_name: 'nvidia-gpu-exporter'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        # 只保留nvidia-gpu-exporter的Pod
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          action: keep
+          regex: nvidia-gpu-exporter
+        # 只保留运行中的Pod
+        - source_labels: [__meta_kubernetes_pod_phase]
+          action: keep
+          regex: Running
+        # 替换地址为PodIP:端口
+        - source_labels: [__address__, __meta_kubernetes_pod_container_port_number]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
 ---
 # Node Exporter DaemonSet
 apiVersion: apps/v1

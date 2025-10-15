@@ -63,6 +63,7 @@
   loop:
     - { kind: DaemonSet, name: "nvidia-gpu-exporter" }
     - { kind: Pod, name: "nvidia-gpu-exporter" }
+    - { kind: Service, name: "nvidia-gpu-exporter" }
   failed_when: false
   run_once: true
 
@@ -152,6 +153,8 @@
       metadata:
         name: nvidia-gpu-exporter
         namespace: prometheus
+        labels:
+          app: nvidia-gpu-exporter
       spec:
         selector:
           app: nvidia-gpu-exporter

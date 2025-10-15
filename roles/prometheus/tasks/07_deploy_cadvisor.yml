@@ -1,0 +1,138 @@
+---
+- name: 检查镜像文件 cadvisor_v0.49.1.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/cadvisor_v0.49.1.tar"
+  register: target_tar_stat
+  run_once: true
+
+- name: 解压镜像文件 cadvisor_v0.49.1.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/cadvisor_v0.49.1.tar.gz -C {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/
+  run_once: true  # 控制节点执行一次
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+
+- name: 复制 cadvisor 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/cadvisor_v0.49.1.tar"
+    dest: "/tmp/cadvisor_v0.49.1.tar"
+    mode: 0644
+  when: is_worker == 1
+
+- name: 加载 cadvisor 镜像到Docker
+  shell: "docker load -i /tmp/cadvisor_v0.49.1.tar"
+  when: is_worker == 1
+
+- name: 清理 cadvisor 资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: DaemonSet, name: "cadvisor" }
+    - { kind: Pod, name: "cadvisor" }
+    - { kind: Service, name: "cadvisor" }
+  failed_when: false
+  run_once: true
+
+- name: 部署 cadvisor DaemonSet
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: cadvisor
+        namespace: prometheus
+        labels:
+          app: cadvisor
+      spec:
+        selector:
+          matchLabels:
+            app: cadvisor
+        template:
+          metadata:
+            labels:
+              app: cadvisor
+          spec:
+            hostPID: true
+            tolerations:
+              # 容忍 control-plane 节点的 NoSchedule 污点
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+              # 可选：如果节点有其他污点（如 master 节点的旧标签），可一并容忍
+              - key: "node-role.kubernetes.io/master"
+                operator: "Exists"
+                effect: "NoSchedule"
+            containers:
+              - name: cadvisor
+                image: gcr.io/cadvisor/cadvisor:v0.49.1
+                imagePullPolicy: IfNotPresent
+                securityContext:
+                  allowPrivilegeEscalation: true
+                  privileged: true
+                ports:
+                  - containerPort: 18080
+                    name: http-metrics
+                    protocol: TCP
+                args:
+                  - --logtostderr
+                  - --housekeeping_interval=10s
+                  - --docker_only=true
+                  - --store_container_labels=false
+                  - --event_storage_event_limit=default=0
+                  - --event_storage_age_limit=default=0
+                  - --port=18080
+                volumeMounts:
+                  - name: rootfs
+                    mountPath: /rootfs
+                    readOnly: true
+                  - name: var-run
+                    mountPath: /var/run
+                    readOnly: false
+                  - name: sys
+                    mountPath: /sys
+                    readOnly: true
+                  - name: docker
+                    mountPath: /var/lib/docker
+                    readOnly: true
+                  - name: disk
+                    mountPath: /dev/disk
+                    readOnly: true
+            volumes:
+              - name: rootfs
+                hostPath:
+                  path: /
+              - name: var-run
+                hostPath:
+                  path: /var/run
+              - name: sys
+                hostPath:
+                  path: /sys
+              - name: docker
+                hostPath:
+                  path: /var/lib/docker
+              - name: disk
+                hostPath:
+                  path: /dev/disk
+
+- name: 创建 cadvisor NodePort (30095) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: cadvisor
+        namespace: prometheus
+        labels:
+          app: cadvisor
+      spec:
+        selector:
+          app: cadvisor
+        ports:
+          - port: 18080
+            targetPort: 18080
+            nodePort: 30095
+        type: NodePort
+  run_once: true

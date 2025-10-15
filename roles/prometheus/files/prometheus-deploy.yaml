@@ -143,23 +143,6 @@ data:
           regex: ([^:]+)(?::\d+)?;(\d+)
           replacement: $1:$2
           target_label: __address__
-
-      - job_name: 'kubernetes-pods'
-        kubernetes_sd_configs:
-        - role: pod
-        relabel_configs:
-        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-          action: keep
-          regex: true
-        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-          action: replace
-          target_label: __metrics_path__
-          regex: (.+)
-        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-          action: replace
-          regex: ([^:]+)(?::\d+)?;(\d+)
-          replacement: $1:$2
-          target_label: __address__
     
       - job_name: 'nvidia-gpu-exporter'
         kubernetes_sd_configs:
@@ -179,6 +162,23 @@ data:
           regex: ([^:]+)(?::\d+)?;(\d+)
           replacement: $1:$2
           target_label: __address__
+    
+      - job_name: 'cadvisor'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          action: keep
+          regex: cadvisor
+        - source_labels: [__meta_kubernetes_pod_phase]
+          action: keep
+          regex: Running
+        - source_labels: [__address__, __meta_kubernetes_pod_container_port_number]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+
 ---
 # Node Exporter DaemonSet
 apiVersion: apps/v1
@@ -250,6 +250,7 @@ spec:
       labels:
         app: kube-state-metrics
     spec:
+      serviceAccountName: kube-state-metrics
       securityContext:
         runAsUser: 0
       tolerations:
@@ -273,6 +274,8 @@ kind: Service
 metadata:
   name: prometheus
   namespace: prometheus
+  labels:
+      app: prometheus
 spec:
   selector:
     app: prometheus
@@ -288,6 +291,8 @@ kind: Service
 metadata:
   name: node-exporter
   namespace: prometheus
+  labels:
+    app: node-exporter
 spec:
   selector:
     app: node-exporter
@@ -303,6 +308,8 @@ kind: Service
 metadata:
   name: kube-state-metrics
   namespace: prometheus
+  labels:
+      app: kube-state-metrics
 spec:
   selector:
     app: kube-state-metrics

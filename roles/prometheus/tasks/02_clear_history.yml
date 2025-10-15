@@ -9,12 +9,15 @@
     - { kind: StatefulSet, name: "prometheus" }
     - { kind: ReplicaSet, name: "prometheus" }
     - { kind: DaemonSet, name: "prometheus" }
+    - { kind: DaemonSet, name: "node-exporter" }
+    - { kind: DaemonSet, name: "kube-state-metrics" }
     - { kind: Job, name: "prometheus" }
     - { kind: Pod, name: "prometheus" }
     - { kind: Service, name: "prometheus" }
     - { kind: ConfigMap, name: "prometheus" }
     - { kind: Secret, name: "prometheus" }
     - { kind: ServiceAccount, name: "prometheus" }
+    - { kind: ServiceAccount, name: "kube-state-metrics" }
     - { kind: PersistentVolumeClaim, name: "prometheus" }
   failed_when: false
   run_once: true
@@ -28,6 +31,8 @@
     - { kind: PersistentVolume, name: "prometheus" }
     - { kind: ClusterRole, name: "prometheus" }
     - { kind: ClusterRoleBinding, name: "prometheus" }
+    - { kind: ClusterRole, name: "kube-state-metrics" }
+    - { kind: ClusterRoleBinding, name: "kube-state-metrics" }
   failed_when: false
   run_once: true
 

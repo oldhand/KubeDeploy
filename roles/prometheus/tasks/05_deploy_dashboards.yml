@@ -33,6 +33,10 @@
         file: "k8s-node-monitoring.json"
       - name: "k8s_gpu_monitoring"
         file: "k8s_gpu_monitoring.json"
+      - name: "k8s-pod-metrics"
+        file: "k8s-pod-metrics.json"
+      - name: "k8s-pod-cadvisor"
+        file: "k8s-pod-cadvisor.json"
   run_once: true
 
 - name: 复制仪表盘文件到目标节点

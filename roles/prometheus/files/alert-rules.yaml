@@ -1,0 +1,21 @@
+groups:
+  - name: hostStatsAlert
+    rules:
+      - alert: hostCpuUsageAlert
+        annotations:
+          description: '实例{{ $labels.instance }} CPU 使用率超过 5% (当前值为: {{ $value }})'
+          summary: 实例 {{ $labels.instance }} CPU 使用率过高
+        expr: ceil((1 - sum(increase(node_cpu_seconds_total{mode="idle"}[1m])) by (instance)
+          / sum(increase(node_cpu_seconds_total[1m])) by (instance) ) * 100) > 5
+        for: 5s
+        labels:
+          severity: normal
+      - alert: hostMemUsageAlert
+        annotations:
+          description: '实例 {{ $labels.instance }} 内存使用率 30% (当前值为: {{ $value }})'
+          summary: 实例 {{ $labels.instance }} 内存使用率过高
+        expr: ceil(((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)/node_memory_MemTotal_bytes)
+          * 100) > 30
+        for: 5s
+        labels:
+          severity: normal

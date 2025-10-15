@@ -1,0 +1,114 @@
+---
+- name: 清理 Alertmanager 旧资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "alertmanager" }
+    - { kind: Pod, name: "alertmanager" }
+    - { kind: Service, name: "alertmanager" }
+    - { kind: ConfigMap, name: "alertmanager-config" }
+  failed_when: false
+  run_once: true
+
+
+- name: 复制 alertmanager-config.yaml 部署文件
+  copy:
+    src: "files/alertmanager-config.yaml"
+    dest: "/tmp/alertmanager-config.yaml"
+  run_once: true
+
+- name: 创建包含 alertmanager-config.yaml 的 ConfigMap
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: alertmanager-config
+    namespace: prometheus
+    state: present
+    definition:
+      data:
+        alertmanager.yml: "{{ lookup('file', '/tmp/alertmanager-config.yaml') }}"
+  run_once: true
+
+- name: 创建 Alertmanager 存储目录(/data/alertmanager)
+  ansible.builtin.file:
+    path: /data/alertmanager
+    state: directory
+    mode: '0777'
+    recurse: yes
+  run_once: true
+
+- name: 部署 AlertManager Deployment
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: alertmanager
+        namespace: prometheus
+        labels:
+          app: alertmanager
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: alertmanager
+        template:
+          metadata:
+            labels:
+              app: alertmanager
+          spec:
+            securityContext:
+              runAsUser: 0
+              fsGroup: 0
+            tolerations:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+              - key: "node-role.kubernetes.io/master"
+                operator: "Exists"
+                effect: "NoSchedule"
+            containers:
+              - name: alertmanager
+                image: prom/alertmanager:v0.28.1
+                args:
+                  - "--config.file=/etc/alertmanager/alertmanager.yml"
+                  - "--storage.path=/alertmanager"
+                ports:
+                  - containerPort: 9093
+                volumeMounts:
+                  - name: alertmanager-config
+                    mountPath: /etc/alertmanager
+                  - name: alertmanager-storage
+                    mountPath: /alertmanager
+                    subPath: alertmanager-data
+            volumes:
+              - name: alertmanager-config
+                configMap:
+                  name: alertmanager-config
+              - name: alertmanager-storage
+                hostPath:
+                  path: /data/alertmanager
+                  type: DirectoryOrCreate
+
+- name: 创建 AlertManager NodePort (30095) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: alertmanager
+        namespace: prometheus
+        labels:
+          app: alertmanager
+      spec:
+        selector:
+          app: alertmanager
+        ports:
+          - port: 9093
+            targetPort: 9093
+            nodePort: 30096
+        type: NodePort
+  run_once: true

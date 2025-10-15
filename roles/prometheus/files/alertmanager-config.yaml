@@ -1,0 +1,29 @@
+global:
+  resolve_timeout: 5m
+  smtp_auth_username: 68594864@qq.com
+  smtp_auth_password: ihpyiwqaoyedcaca
+  smtp_require_tls: false
+  smtp_smarthost: smtp.qq.com:465
+  smtp_from: 68594864@qq.com
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+
+receivers:
+- name: 'web.hook'
+  webhook_configs:
+  - url: 'http://prometheus-alertmanager:9093/api/v1/alerts'
+  email_configs:
+  - send_resolved: true
+    to: tezan@qq.com
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']

@@ -7,13 +7,23 @@
     state: present
   run_once: true
 
-- name: 清理 prometheus 命名空间下的所有 Deployment
+- name: 复制 alert-rules.yaml 部署文件
+  copy:
+    src: "files/alert-rules.yaml"
+    dest: "/tmp/alert-rules.yaml"
+  run_once: true
+
+
+- name: 创建包含 alert-rules.yaml 的 ConfigMap
   kubernetes.core.k8s:
-    kind: Deployment
+    kind: ConfigMap
+    name: prometheus-alert-rules
     namespace: prometheus
-    state: absent
-    all: true  # 删除该命名空间下所有 Deployment
-  run_once: true  # 仅在控制节点执行（与现有部署逻辑一致）
+    state: present
+    definition:
+      data:
+        alert_rules.yml: "{{ lookup('file', '/tmp/alert-rules.yaml') }}"
+  run_once: true
 
 - name: 复制 Prometheus serviceAccount 部署文件
   copy:

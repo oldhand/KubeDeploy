@@ -7,3 +7,4 @@
 - include_tasks: 05_deploy_dashboards.yml
 - include_tasks: 06_deploy_gpu_exporter.yml
 - include_tasks: 07_deploy_cadvisor.yml
+- include_tasks: 08_deploy_alertmanager.yml

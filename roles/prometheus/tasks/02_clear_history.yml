@@ -14,7 +14,8 @@
     - { kind: Job, name: "prometheus" }
     - { kind: Pod, name: "prometheus" }
     - { kind: Service, name: "prometheus" }
-    - { kind: ConfigMap, name: "prometheus" }
+    - { kind: ConfigMap, name: "prometheus-config" }
+    - { kind: ConfigMap, name: "prometheus-alert-rules" }
     - { kind: Secret, name: "prometheus" }
     - { kind: ServiceAccount, name: "prometheus" }
     - { kind: ServiceAccount, name: "kube-state-metrics" }

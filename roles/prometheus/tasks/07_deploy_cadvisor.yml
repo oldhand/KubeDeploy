@@ -115,7 +115,8 @@
               - name: disk
                 hostPath:
                   path: /dev/disk
-
+  run_once: true
+  
 - name: 创建 cadvisor NodePort (30095) 服务
   kubernetes.core.k8s:
     state: present

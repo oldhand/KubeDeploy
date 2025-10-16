@@ -1,21 +1,125 @@
+# alert_rules.yml - Prometheus告警规则配置
+# 适用场景：通用服务器、Kubernetes集群基础监控
+# 依赖组件：node_exporter、kube-state-metrics、Prometheus自身指标
+
 groups:
-  - name: hostStatsAlert
+  # 1. 实例存活监控（基础可用性）
+  - name: instance_availability
     rules:
-      - alert: hostCpuUsageAlert
-        annotations:
-          description: '实例{{ $labels.instance }} CPU 使用率超过 5% (当前值为: {{ $value }})'
-          summary: 实例 {{ $labels.instance }} CPU 使用率过高
-        expr: ceil((1 - sum(increase(node_cpu_seconds_total{mode="idle"}[1m])) by (instance)
-          / sum(increase(node_cpu_seconds_total[1m])) by (instance) ) * 100) > 5
-        for: 5s
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
         labels:
-          severity: normal
-      - alert: hostMemUsageAlert
+          severity: critical
+          category: availability
         annotations:
-          description: '实例 {{ $labels.instance }} 内存使用率 30% (当前值为: {{ $value }})'
-          summary: 实例 {{ $labels.instance }} 内存使用率过高
-        expr: ceil(((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)/node_memory_MemTotal_bytes)
-          * 100) > 30
-        for: 5s
+          summary: "监控实例 {{ $labels.instance }} 宕机"
+          description: "{{ $labels.job }} 任务下的 {{ $labels.instance }} 已停止响应超过5分钟（当前状态：不可达）"
+          value: "当前值: {{ $value }}"
+
+  # 2. 主机资源使用率监控（CPU/内存/磁盘/网络）- 补全expr+修正模板语法
+  - name: host_resource_usage
+    rules:
+      # CPU使用率过高
+      - alert: HighCPUUsage
+        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 80
+        for: 10m
         labels:
-          severity: normal
+          severity: warning
+          category: resource
+        annotations:
+          summary: "实例 {{ $labels.instance }} CPU使用率过高"
+          description: "CPU使用率已超过80%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          value: "{{ printf \"%.2f%%\" $value }}"
+
+      # 内存使用率过高
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "实例 {{ $labels.instance }} 内存使用率过高"
+          description: "内存使用率已超过85%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          value: "{{ printf \"%.2f%%\" $value }}"
+
+      # 根分区磁盘使用率过高
+      - alert: HighRootDiskUsage
+        expr: 100 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100) > 85
+        for: 15m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "实例 {{ $labels.instance }} 根分区磁盘使用率过高"
+          description: "根分区使用率已超过85%，持续15分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          value: "{{ printf \"%.2f%%\" $value }}"
+
+      # 根分区剩余空间不足（修正除法空格）
+      - alert: LowRootDiskSpace
+        # expr中提前转换单位：字节 → GB（除以1024^3），判断是否小于10GB
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / 1073741824) < 10
+        for: 5m
+        labels:
+          severity: critical
+          category: resource
+        annotations:
+          summary: "实例 {{ $labels.instance }} 根分区剩余空间不足"
+          description: "根分区剩余空间已低于10GB，持续5分钟（当前值：{{ printf \"%.2f GB\" $value }}）"
+          value: "{{ printf \"%.2f GB\" $value }}"
+
+
+      - alert: HighNetworkTraffic
+        # 假设监控网卡流量（字节/秒），转换为MB/秒（除以1024^2 = 1048576）
+        expr: (node_network_transmit_bytes_total{device!~"lo"} / 1048576) > 100  # 假设阈值100MB/s
+        for: 5m
+        labels:
+          severity: warning
+          category: network
+        annotations:
+          summary: "实例 {{ $labels.instance }} 网络流量过高"
+          description: "网络发送流量已超过100MB/s，持续5分钟（当前值：{{ printf \"%.2f MB/s\" $value }}）"
+          value: "{{ printf \"%.2f MB/s\" $value }}"
+
+
+  # 3. Kubernetes容器/Pod监控
+  - name: k8s_container_pod
+    rules:
+      # Pod频繁重启
+      - alert: PodFrequentRestart
+        expr: sum(increase(kube_pod_container_status_restarts_total[10m])) by (pod, namespace) > 3
+        for: 1m
+        labels:
+          severity: warning
+          category: k8s
+        annotations:
+          summary: "命名空间 {{ $labels.namespace }} 中Pod {{ $labels.pod }} 频繁重启"
+          description: "10分钟内重启次数超过3次（当前值：{{ $value }}次），可能存在程序异常"
+          value: "{{ $value }}次"
+
+      # 容器状态异常（非Running状态）
+      - alert: ContainerNotRunning
+        expr: kube_pod_container_status_running{namespace!~"kube-system|monitoring"} != 1  # 过滤系统命名空间
+        for: 3m
+        labels:
+          severity: critical
+          category: k8s
+        annotations:
+          summary: "命名空间 {{ $labels.namespace }} 中Pod {{ $labels.pod }} 的容器 {{ $labels.container }} 未运行"
+          description: "容器状态异常（非Running），持续3分钟，可能影响服务可用性"
+
+  # 4. 监控系统自身健康度（补全expr）
+  - name: monitoring_system_health
+    rules:
+      # Prometheus存储容量不足
+      - alert: PrometheusStorageLow
+        expr: prometheus_tsdb_storage_blocks_bytes / prometheus_tsdb_storage_retention_bytes * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Prometheus 存储容量不足"
+          description: "存储已使用超过80%（当前值：{{ printf \"%.2f%%\" $value }}），建议扩展存储或缩短保留时间"
+          value: "{{ printf \"%.2f%%\" $value }}"

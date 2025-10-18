@@ -31,7 +31,7 @@
   changed_when: false
 
 - name: 检查节点是否有NVIDIA GPU（PCI厂商ID 10de）
-  shell: "/usr/bin/lspci -n | grep -i '10de'"  # 10de是NVIDIA的PCI厂商ID
+  shell: "lspci -n | grep -i '10de'"  # 10de是NVIDIA的PCI厂商ID
   register: has_nvidia_gpu
   changed_when: false
   failed_when: false
@@ -48,7 +48,7 @@
 
 - name: 为GPU节点添加标签 nvidia.com/gpu=true
   command: >
-    /usr/bin/kubectl label nodes {{ node_hostname.stdout }} nvidia.com/gpu=true --overwrite
+    kubectl label nodes {{ node_hostname.stdout }} nvidia.com/gpu=true --overwrite
   when:
     - nvidia_smi_check.rc == 0
     - has_nvidia_gpu.rc == 0

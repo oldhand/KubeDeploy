@@ -124,6 +124,10 @@
                   - name: grafana-storage  # 新增存储挂载
                     mountPath: /var/lib/grafana  # Grafana数据存储路径
                 env:
+                  - name: SERVICE_HOST
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: status.hostIP  # 节点IP（非Service IP，局限性大）
                   - name: GF_SECURITY_ADMIN_USER
                     value: "admin"  # 固定用户名
                   - name: GF_SECURITY_ADMIN_PASSWORD
@@ -132,6 +136,22 @@
                     value: "false"
                   - name: GF_LANG
                     value: "zh-CN"  # 中文界面
+                  # 允许嵌入配置
+                  - name: GF_SERVER_ALLOW_EMBEDDING
+                    value: "true"
+                  - name: GF_HTTP_CORS_ENABLED
+                    value: "false"
+                  - name: GF_HTTP_CORS_ALLOW_ORIGIN
+                    value: "*"
+                  # 允许嵌入的域名/IP
+                  - name: GF_SERVER_ALLOWED_EMBEDDING_DOMAINS
+                    value: "*"
+                  - name: GF_SERVER_ROOT_URL
+                    value: "http://$(SERVICE_HOST):30093/"
+                  - name: GF_USERS_VIEWERS_CAN_EDIT
+                    value: "false"  # 确保观众无编辑权限（避免显示编辑按钮）
+                  - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+                    value: ""  # 可选：清空默认首页，不影响嵌入但减少干扰
                 resources:
                   requests:
                     cpu: 100m

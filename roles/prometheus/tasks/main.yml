@@ -8,3 +8,5 @@
 - include_tasks: 06_deploy_gpu_exporter.yml
 - include_tasks: 07_deploy_cadvisor.yml
 - include_tasks: 08_deploy_alertmanager.yml
+- include_tasks: 09_deploy_mysql_exporter.yml
+- include_tasks: 10_deploy_process_exporter.yml

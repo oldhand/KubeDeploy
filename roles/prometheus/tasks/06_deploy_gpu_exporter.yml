@@ -121,12 +121,6 @@
                   - name: nvidia-smi
                     mountPath: /usr/bin/nvidia-smi
                     readOnly: true
-                  - name: nvidia-lib
-                    mountPath: /usr/lib/x86_64-linux-gnu/
-                    readOnly: true
-                env:
-                  - name: LD_LIBRARY_PATH
-                    value: /usr/lib/x86_64-linux-gnu/
             volumes:
               - name: nvidia-devices
                 hostPath:
@@ -136,10 +130,6 @@
                 hostPath:
                   path: /usr/bin/nvidia-smi
                   type: File
-              - name: nvidia-lib
-                hostPath:
-                  path: /usr/lib/x86_64-linux-gnu/
-                  type: Directory
   when:
     - nvidia_smi_check.rc == 0
     - has_nvidia_gpu.rc == 0

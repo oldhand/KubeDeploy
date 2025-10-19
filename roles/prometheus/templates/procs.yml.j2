@@ -1,0 +1,7 @@
+
+process_names:
+{% for proc in process_exporter %}
+  - name: "{{ proc.name }}"
+    cmdline:
+      - "{{ proc.cmd }}"
+{% endfor %}

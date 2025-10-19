@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: process-exporter
+  namespace: prometheus
+  labels:
+    app: process-exporter
+spec:
+  selector:
+    matchLabels:
+      app: process-exporter
+  template:
+    metadata:
+      labels:
+        app: process-exporter
+    spec:
+      tolerations:
+        # 容忍 control-plane 节点的 NoSchedule 污点
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        # 可选：如果节点有其他污点（如 master 节点的旧标签），可一并容忍
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: process-exporter
+          image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/kubesphere/process-exporter:0.5.0
+          args:
+            - --config.path=/etc/process-exporter/procs.yml  # 指定配置文件路径
+            - --web.listen-address=:9256  # 暴露metrics的端口（默认9256）
+            - --procfs=/host/proc
+          ports:
+            - containerPort: 9256
+              name: metrics
+          volumeMounts:
+            - name: proc  # 挂载节点的/proc目录（必须，用于读取进程信息）
+              mountPath: /host/proc
+              readOnly: true
+            - name: config  # 挂载process-exporter的配置文件
+              mountPath: /etc/process-exporter
+              readOnly: true
+          securityContext:
+            runAsUser: 0  # 需要root权限访问/proc
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc  # 节点的/proc目录
+        - name: config
+          configMap:
+            name: process-exporter-config  # 关联下面的ConfigMap
+

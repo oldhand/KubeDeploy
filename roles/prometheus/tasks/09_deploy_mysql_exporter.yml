@@ -1,0 +1,136 @@
+---
+- name: 检查镜像文件 mysqld-exporter_v0.15.1.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/mysqld-exporter_v0.15.1.tar"
+  register: target_tar_stat
+  run_once: true
+
+- name: 解压镜像文件 mysqld-exporter_v0.15.1.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/mysqld-exporter_v0.15.1.tar.gz -C {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/
+  run_once: true  # 控制节点执行一次
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+
+- name: 复制 mysqld-exporter_v0.15.1.tar 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/mysqld-exporter_v0.15.1.tar"
+    dest: "/tmp/mysqld-exporter_v0.15.1.tar"
+    mode: 0644
+  when: is_worker == 1
+
+- name: 加载 mysqld-exporter_v0.15.1.tar 镜像到Docker
+  shell: "docker load -i /tmp/mysqld-exporter_v0.15.1.tar"
+  when: is_worker == 1
+
+ 
+
+- name: 清理 mysqld-exporter 资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "mysqld-exporter" }
+    - { kind: Pod, name: "mysqld-exporter" }
+    - { kind: ConfigMap, name: "mysqld-exporter-config" }
+    - { kind: Service, name: "mysqld-exporter" }
+  failed_when: false
+  run_once: true
+
+- name: 部署 mysqld-exporter-config
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: mysqld-exporter-config
+        namespace: prometheus
+      data:
+        .my.cnf: |
+          [client]
+          user={{ mysqld_exporter.mysql_user }}
+          password={{ mysqld_exporter.mysql_password }}
+          host={{ mysqld_exporter.mysql_addr.split(':')[0] }}  # 从 addr 中提取 IP（如 47.113.103.233）
+          port={{ mysqld_exporter.mysql_addr.split(':')[1] }}  # 从 addr 中提取端口（如 3306）
+          protocol=tcp
+
+- name: 部署 mysqld-exporter Deployment
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mysqld-exporter
+        namespace: prometheus
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: mysqld-exporter
+        template:
+          metadata:
+            labels:
+              app: mysqld-exporter
+          spec:
+            tolerations:
+              # 容忍 control-plane 节点的 NoSchedule 污点
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+              # 可选：如果节点有其他污点（如 master 节点的旧标签），可一并容忍
+              - key: "node-role.kubernetes.io/master"
+                operator: "Exists"
+                effect: "NoSchedule"
+            containers:
+              - name: mysqld-exporter
+                image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/quay.io/prometheus/mysqld-exporter:v0.15.1  # 离线导入的镜像名
+                imagePullPolicy: Never  # 离线环境必须设置为 Never（禁止从外部拉取）
+                ports:
+                  - containerPort: 9104  # exporter 默认暴露指标的端口
+                    name: metrics
+                    protocol: TCP
+                args:
+                  - --config.my-cnf=/etc/mysql/.my.cnf
+                  - --collect.global_status
+                  - --collect.info_schema.innodb_metrics
+                  - --collect.auto_increment.columns
+                  - --collect.info_schema.processlist
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                volumeMounts:
+                  - name: mysqld-exporter-config-volume
+                    mountPath: /etc/mysql/.my.cnf
+                    subPath: .my.cnf
+            volumes:
+              - name: mysqld-exporter-config-volume
+                configMap:
+                  name: mysqld-exporter-config
+  run_once: true
+
+- name: 创建 mysqld-exporter NodePort (30097) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mysqld-exporter
+        namespace: prometheus
+        labels:
+          app: mysqld-exporter
+      spec:
+        selector:
+          app: mysqld-exporter
+        ports:
+          - port: 9104
+            targetPort: 9104
+            nodePort: 30097
+        type: NodePort
+  run_once: true

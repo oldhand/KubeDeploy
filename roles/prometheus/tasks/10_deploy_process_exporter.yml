@@ -1,0 +1,79 @@
+---
+- name: 检查镜像文件 process-exporter_0.5.0.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/process-exporter_0.5.0.tar"
+  register: target_tar_stat
+  run_once: true
+
+- name: 解压镜像文件 process-exporter_0.5.0.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/process-exporter_0.5.0.tar.gz -C {{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/
+  run_once: true  # 控制节点执行一次
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+
+- name: 复制 process-exporter_0.5.0.tar 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/images/exporter/{{ ansible_architecture }}/process-exporter_0.5.0.tar"
+    dest: "/tmp/process-exporter_0.5.0.tar"
+    mode: 0644
+  when: is_worker == 1
+
+- name: 加载 process-exporter_0.5.0.tar 镜像到Docker
+  shell: "docker load -i /tmp/process-exporter_0.5.0.tar"
+  when: is_worker == 1
+
+
+- name: 清理 process-exporte 资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: DaemonSet, name: "process-exporter" }
+    - { kind: Pod, name: "process-exporter" }
+    - { kind: ConfigMap, name: "process-exporter-config" }
+    - { kind: Service, name: "process-exporter" }
+  failed_when: false
+  run_once: true
+
+
+- name: 生成 process-exporter 配置文件（ConfigMap）
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: process-exporter-config
+        namespace: "prometheus"
+      data:
+        procs.yml: |
+          {{ lookup('template', 'procs.yml.j2') | indent(10) }}
+    state: present
+
+
+- name: 部署 process-exporter DaemonSet
+  kubernetes.core.k8s:
+    definition: "{{ lookup('template', 'process-exporter-daemonset.yml.j2') | from_yaml }}"
+    state: present
+
+
+- name: 创建 process-exporter NodePort (30098) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: process-exporter
+        namespace: prometheus
+        labels:
+          app: process-exporter
+      spec:
+        selector:
+          app: process-exporter
+        ports:
+          - port: 9256
+            targetPort: 9256
+            nodePort: 30098
+        type: NodePort
+  run_once: true

@@ -640,6 +640,7 @@
   },
   "refresh": "10s",
   "schemaVersion": 12,
+  "uid": "123456789",
   "version": 1,
   "links": [
     {

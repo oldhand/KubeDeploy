@@ -81,6 +81,22 @@
         storageClassName: grafana-storage
   run_once: true
 
+- name: 创建 grafana-custom-config
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: grafana-custom-config
+        namespace: prometheus
+      data:
+        grafana.ini: |
+          [security]
+          x_frame_options = ALLOWALL
+          allow_embedding = true
+          content_security_policy = frame-ancestors *; default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;
+  run_once: true
 
 - name: 部署Grafana
   kubernetes.core.k8s:
@@ -123,6 +139,9 @@
                     mountPath: /etc/grafana/provisioning/datasources
                   - name: grafana-storage  # 新增存储挂载
                     mountPath: /var/lib/grafana  # Grafana数据存储路径
+                  - name: grafana-custom-config
+                    mountPath: /etc/grafana/grafana.ini
+                    subPath: grafana.ini
                 env:
                   - name: SERVICE_HOST
                     valueFrom:
@@ -160,6 +179,10 @@
                     value: "true"
                   - name: GF_AUTH_ANONYMOUS_ORG_ROLE
                     value: "Viewer"
+                  - name: GF_SECURITY_X_FRAME_OPTIONS
+                    value: "ALLOWALL"
+                  - name: GF_SECURITY_CONTENT_SECURITY_POLICY
+                    value: "frame-ancestors *; default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
                 resources:
                   requests:
                     cpu: 100m
@@ -171,9 +194,12 @@
               - name: grafana-datasources
                 configMap:
                   name: grafana-datasources
-              - name: grafana-storage  # 关联PVC
+              - name: grafana-storage
                 persistentVolumeClaim:
                   claimName: grafana-pvc
+              - name: grafana-custom-config
+                configMap:
+                  name: grafana-custom-config
   run_once: true
 
 - name: 创建 Grafana NodePort (30093) 服务

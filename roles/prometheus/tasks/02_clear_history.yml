@@ -51,6 +51,7 @@
     - { kind: Pod, name: "grafana" }
     - { kind: Service, name: "grafana" }
     - { kind: ConfigMap, name: "grafana" }
+    - { kind: ConfigMap, name: "grafana-custom-config" }
     - { kind: Secret, name: "grafana" }
     - { kind: PersistentVolumeClaim, name: "grafana" }
   failed_when: false

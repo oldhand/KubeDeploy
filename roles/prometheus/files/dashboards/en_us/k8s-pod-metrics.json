@@ -164,7 +164,7 @@
         }
       ],
       "thresholds": "80,90",
-      "title": "集群 Pod 请求率",
+      "title": "Cluster Pod Requested",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -250,7 +250,7 @@
         }
       ],
       "thresholds": "80,90",
-      "title": "集群 CPU 请求率",
+      "title": "Cluster CPU Requested",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -336,7 +336,7 @@
         }
       ],
       "thresholds": "80,90",
-      "title": "集群内存请求率",
+      "title": "Cluster Memory  Requested",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -415,7 +415,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "集群 Pod 容量",
+      "title": "Cluster Pod Capacity",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -533,7 +533,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "集群 CPU 容量",
+      "title": "Cluster CPU Capacity",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -652,7 +652,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "集群内存容量",
+      "title": "Cluster Mem Capacity",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -777,7 +777,7 @@
             }
           ],
           "thresholds": "",
-          "title": "节点数量",
+          "title": "Number Of Nodes",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -865,7 +865,7 @@
             }
           ],
           "thresholds": "1",
-          "title": "不可用节点",
+          "title": "Nodes Unavailable",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -941,7 +941,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "节点未就绪",
+          "title": "Node NotReady",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1058,7 +1058,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "节点压力",
+          "title": "Node Pressure",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1152,7 +1152,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "节点数(趋势)",
+          "title": "node number",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1190,7 +1190,7 @@
           }
         }
       ],
-      "title": "节点",
+      "title": "Node",
       "type": "row"
     },
     {
@@ -1288,7 +1288,7 @@
               "refId": "A"
             }
           ],
-          "title": "Deployment 副本 - 最新",
+          "title": "Deployment Replicas - Up To Date",
           "transform": "timeseries_to_rows",
           "type": "table-old"
         },
@@ -1366,7 +1366,7 @@
             }
           ],
           "thresholds": "",
-          "title": "Deployment 副本数",
+          "title": "Deployment Replicas",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -1452,7 +1452,7 @@
             }
           ],
           "thresholds": "",
-          "title": "Deployment 副本 - 已更新",
+          "title": "Deployment Replicas - Updated",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -1538,7 +1538,7 @@
             }
           ],
           "thresholds": "",
-          "title": "Deployment 副本 - 不可用",
+          "title": "Deployment Replicas - Unavailable",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -1551,7 +1551,7 @@
           "valueName": "avg"
         }
       ],
-      "title": "部署",
+      "title": "Deployments",
       "type": "row"
     },
     {
@@ -1644,7 +1644,7 @@
               "refId": "A"
             }
           ],
-          "title": "StatefulSet 副本 - 最新",
+          "title": "Statefulset Replicas - Up To Date",
           "transform": "timeseries_to_rows",
           "type": "table-old"
         },
@@ -1700,7 +1700,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "StatefulSet 副本率",
+          "title": "Statefulset replicas",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1738,7 +1738,7 @@
           }
         }
       ],
-      "title": "StatefulSet",
+      "title": "Statefuleset",
       "type": "row"
     },
     {
@@ -1828,7 +1828,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "30分钟内重启的 Pod",
+          "title": "Pods restart in 30m",
           "transform": "timeseries_to_rows",
           "type": "table-old"
         },
@@ -1894,7 +1894,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "被驱逐的 Pod",
+          "title": "Evicted",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2007,7 +2007,7 @@
             }
           ],
           "thresholds": "",
-          "title": "运行中的 Pod",
+          "title": "Pods Running",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2094,7 +2094,7 @@
             }
           ],
           "thresholds": "",
-          "title": "成功的 Pod",
+          "title": "Pods Succeeded",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2181,7 +2181,7 @@
             }
           ],
           "thresholds": "",
-          "title": "失败的 Pod",
+          "title": "Pods Failed",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2268,7 +2268,7 @@
             }
           ],
           "thresholds": "",
-          "title": "等待的 Pod",
+          "title": "Pods Pending",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2355,7 +2355,7 @@
             }
           ],
           "thresholds": "",
-          "title": "未知状态 Pod",
+          "title": "Pods Unknown",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2368,7 +2368,7 @@
           "valueName": "current"
         }
       ],
-      "title": "Pod",
+      "title": "Pods",
       "type": "row"
     },
     {
@@ -2458,7 +2458,7 @@
             }
           ],
           "thresholds": "",
-          "title": "运行中的容器",
+          "title": "Containers Running",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2544,7 +2544,7 @@
             }
           ],
           "thresholds": "",
-          "title": "等待中的容器",
+          "title": "Containers Waiting",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2630,7 +2630,7 @@
             }
           ],
           "thresholds": "",
-          "title": "已终止的容器",
+          "title": "Containers Terminated",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2716,7 +2716,7 @@
             }
           ],
           "thresholds": "",
-          "title": "容器重启次数 (最近30分钟)",
+          "title": "Containers Restarts (Last 30 Minutes)",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2802,7 +2802,7 @@
             }
           ],
           "thresholds": "",
-          "title": "容器请求的 CPU 核心数",
+          "title": "CPU Cores Requested by Containers",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2888,7 +2888,7 @@
             }
           ],
           "thresholds": "",
-          "title": "容器请求的内存",
+          "title": "Memory Requested By Containers",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -2902,7 +2902,7 @@
         }
       ],
       "repeat": null,
-      "title": "容器",
+      "title": "Containers",
       "type": "row"
     },
     {
@@ -2991,7 +2991,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "HPA",
+          "title": "hpa",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3086,7 +3086,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "HPA 当前总值",
+          "title": "total-hpa-current",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3181,7 +3181,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "当前=最大",
+          "title": "current==max",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3276,7 +3276,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "当前=最小",
+          "title": "current==min",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3314,7 +3314,7 @@
           }
         }
       ],
-      "title": "HPA 自动扩缩",
+      "title": "HPA",
       "type": "row"
     },
     {
@@ -3402,7 +3402,7 @@
             }
           ],
           "thresholds": "",
-          "title": "成功作业",
+          "title": "Jobs Succeeded",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -3497,7 +3497,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "距上次作业成功的时间",
+          "title": "Job last success time from now",
           "transform": "timeseries_to_rows",
           "transparent": true,
           "type": "table-old"
@@ -3585,7 +3585,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "失败的作业",
+          "title": "Job failed",
           "transform": "timeseries_to_rows",
           "transparent": true,
           "type": "table-old"
@@ -3664,7 +3664,7 @@
             }
           ],
           "thresholds": "",
-          "title": "活动作业",
+          "title": "Jobs Active",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -3750,7 +3750,7 @@
             }
           ],
           "thresholds": "",
-          "title": "失败作业",
+          "title": "Jobs Failed",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -3763,7 +3763,7 @@
           "valueName": "current"
         }
       ],
-      "title": "作业",
+      "title": "Jobs",
       "type": "row"
     },
     {
@@ -3850,7 +3850,7 @@
           "thresholds": "",
           "timeFrom": null,
           "timeShift": null,
-          "title": "PVC 已绑定",
+          "title": "pvc is bound",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -3935,7 +3935,7 @@
           "thresholds": "",
           "timeFrom": null,
           "timeShift": null,
-          "title": "PVC 未绑定",
+          "title": "pvc is not bound",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -4005,12 +4005,12 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "PVC",
+          "title": "pvc",
           "transform": "timeseries_to_rows",
           "type": "table-old"
         }
       ],
-      "title": "持久卷声明 (PVC)",
+      "title": "PVC",
       "type": "row"
     }
   ],
@@ -4144,7 +4144,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Kubernetes 状态监控面板",
+  "title": "kube-state-metrics-v2",
   "uid": "garysdevil-kube-state-metrics-v2",
   "version": 12
 }

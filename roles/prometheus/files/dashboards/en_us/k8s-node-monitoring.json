@@ -74,6 +74,24 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "tags": [],
+      "targetBlank": true,
+      "title": "GitHub",
+      "type": "link",
+      "url": "https://github.com/rfmoz/grafana-dashboards"
+    },
+    {
+      "icon": "external link",
+      "tags": [],
+      "targetBlank": true,
+      "title": "Grafana",
+      "type": "link",
+      "url": "https://grafana.com/grafana/dashboards/1860"
+    }
+  ],
   "panels": [
     {
       "collapsed": false,
@@ -85,7 +103,7 @@
       },
       "id": 261,
       "panels": [],
-      "title": "快速 CPU / 内存 / 磁盘概览",
+      "title": "Quick CPU / Mem / Disk",
       "type": "row"
     },
     {
@@ -93,7 +111,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "通过 PSI 指标展示资源压力",
+      "description": "Resource pressure via PSI",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -210,7 +228,7 @@
           "step": 240
         }
       ],
-      "title": "资源压力",
+      "title": "Pressure",
       "type": "bargauge"
     },
     {
@@ -218,7 +236,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "整体 CPU 繁忙百分比 (所有核心平均)",
+      "description": "Overall CPU busy percentage (averaged across all cores)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -295,7 +313,7 @@
           "step": 240
         }
       ],
-      "title": "CPU 繁忙率",
+      "title": "CPU Busy",
       "type": "gauge"
     },
     {
@@ -303,7 +321,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "系统总体负载 (所有 CPU 核心)",
+      "description": "System load  over all CPU cores together",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -380,7 +398,7 @@
           "step": 240
         }
       ],
-      "title": "系统负载",
+      "title": "Sys Load",
       "type": "gauge"
     },
     {
@@ -388,7 +406,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "真实内存使用 (排除缓存与可回收内存)",
+      "description": "Real RAM usage excluding cache and reclaimable memory",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -455,7 +473,7 @@
           "step": 240
         }
       ],
-      "title": "内存使用率",
+      "title": "RAM Used",
       "type": "gauge"
     },
     {
@@ -463,7 +481,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "系统当前已使用的交换分区百分比",
+      "description": "Percentage of swap space currently used by the system",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -538,7 +556,7 @@
           "step": 240
         }
       ],
-      "title": "交换分区使用率",
+      "title": "SWAP Used",
       "type": "gauge"
     },
     {
@@ -546,7 +564,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "根文件系统已使用空间",
+      "description": "Used Root FS",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -622,7 +640,7 @@
           "step": 240
         }
       ],
-      "title": "根文件系统使用率",
+      "title": "Root FS Used",
       "type": "gauge"
     },
     {
@@ -696,7 +714,7 @@
           "refId": "A"
         }
       ],
-      "title": "CPU 核心数",
+      "title": "CPU Cores",
       "type": "stat"
     },
     {
@@ -772,7 +790,7 @@
           "step": 240
         }
       ],
-      "title": "需要重启",
+      "title": "Reboot Required",
       "type": "stat"
     },
     {
@@ -852,7 +870,7 @@
           "step": 240
         }
       ],
-      "title": "运行时长",
+      "title": "Uptime",
       "type": "stat"
     },
     {
@@ -938,7 +956,7 @@
           "step": 240
         }
       ],
-      "title": "根文件系统总量",
+      "title": "RootFS Total",
       "type": "stat"
     },
     {
@@ -1018,7 +1036,7 @@
           "step": 240
         }
       ],
-      "title": "内存总量",
+      "title": "RAM Total",
       "type": "stat"
     },
     {
@@ -1098,7 +1116,7 @@
           "step": 240
         }
       ],
-      "title": "交换分区总量",
+      "title": "SWAP Total",
       "type": "stat"
     },
     {
@@ -1111,7 +1129,7 @@
       },
       "id": 263,
       "panels": [],
-      "title": "基础 CPU / 内存 / 网络 / 磁盘",
+      "title": "Basic CPU / Mem / Net / Disk",
       "type": "row"
     },
     {
@@ -1119,7 +1137,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "CPU 时间在繁忙与空闲之间的分布，按活动类型拆分",
+      "description": "CPU time spent busy vs idle, split by activity type",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1337,7 +1355,7 @@
           "step": 240
         }
       ],
-      "title": "CPU 基本分布",
+      "title": "CPU Basic",
       "type": "timeseries"
     },
     {
@@ -1345,7 +1363,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "内存与交换分区使用概览 (含缓存)",
+      "description": "RAM and swap usage overview, including caches",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1547,7 +1565,7 @@
           "step": 240
         }
       ],
-      "title": "内存基本分布",
+      "title": "Memory Basic",
       "type": "timeseries"
     },
     {
@@ -1555,7 +1573,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "每个接口的网络流量 (收发，单位 bps)",
+      "description": "Per-interface network traffic (receive and transmit) in bits per second",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1664,7 +1682,7 @@
           "step": 240
         }
       ],
-      "title": "网络流量基本",
+      "title": "Network Traffic Basic",
       "type": "timeseries"
     },
     {
@@ -1672,7 +1690,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "每个挂载设备的文件系统使用百分比",
+      "description": "Percentage of filesystem space used for each mounted device",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1760,7 +1778,7 @@
           "step": 240
         }
       ],
-      "title": "磁盘空间使用基本",
+      "title": "Disk Space Used Basic",
       "type": "timeseries"
     },
     {
@@ -1778,7 +1796,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "按状态拆分的 CPU 时间使用，跨所有核心归一化",
+          "description": "CPU time usage split by state, normalized across all CPU cores",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2111,7 +2129,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "物理内存与 swap 使用拆分，同时显示硬件检测到的内存错误",
+          "description": "Breakdown of physical memory and swap usage. Hardware-detected memory errors are also displayed",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2592,7 +2610,7 @@
               "step": 240
             }
           ],
-          "title": "内存",
+          "title": "Memory",
           "type": "timeseries"
         },
         {
@@ -2600,7 +2618,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个接口的入站与出站网络流量",
+          "description": "Incoming and outgoing network traffic per interface",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2713,7 +2731,7 @@
               "step": 240
             }
           ],
-          "title": "网络流量",
+          "title": "Network Traffic",
           "type": "timeseries"
         },
         {
@@ -2721,7 +2739,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "网络接口利用率占其最大容量的百分比",
+          "description": "Network interface utilization as a percentage of its maximum capacity",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2835,7 +2853,7 @@
               "step": 240
             }
           ],
-          "title": "网络饱和度",
+          "title": "Network Saturation",
           "type": "timeseries"
         },
         {
@@ -2843,7 +2861,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个设备的磁盘 IO 每秒操作次数",
+          "description": "Disk I/O operations per second for each device",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2954,7 +2972,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘 IOps",
+          "title": "Disk IOps",
           "type": "timeseries"
         },
         {
@@ -2962,7 +2980,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个设备的磁盘 IO 吞吐量",
+          "description": "Disk I/O throughput per device",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3077,7 +3095,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘吞吐",
+          "title": "Disk Throughput",
           "type": "timeseries"
         },
         {
@@ -3085,7 +3103,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个挂载文件系统的可用磁盘空间(排除 rootfs)，基于非 root 用户可用块统计",
+          "description": "Amount of available disk space per mounted filesystem, excluding rootfs. Based on block availability to non-root users",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3200,7 +3218,7 @@
               "step": 240
             }
           ],
-          "title": "文件系统可用空间",
+          "title": "Filesystem Space Available",
           "type": "timeseries"
         },
         {
@@ -3208,7 +3226,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个挂载点的磁盘使用(已用=总量-可用)",
+          "description": "Disk usage (used = total - available) per mountpoint",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3299,7 +3317,7 @@
               "step": 240
             }
           ],
-          "title": "文件系统已用空间",
+          "title": "Filesystem Used",
           "type": "timeseries"
         },
         {
@@ -3307,7 +3325,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "磁盘积极处理 IO 操作所占百分比",
+          "description": "Percentage of time the disk was actively processing I/O operations",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3400,7 +3418,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘 IO 利用率",
+          "title": "Disk I/O Utilization",
           "type": "timeseries"
         },
         {
@@ -3408,7 +3426,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "任务经历 CPU、内存或 IO 延迟的频率。“Some” 表示部分变慢；“Full” 表示所有任务停滞。基于 Linux PSI 指标:\nhttps://docs.kernel.org/accounting/psi.html",
+          "description": "How often tasks experience CPU, memory, or I/O delays. “Some” indicates partial slowdown; “Full” indicates all tasks are stalled. Based on Linux PSI metrics:\nhttps://docs.kernel.org/accounting/psi.html",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3578,11 +3596,11 @@
               "step": 240
             }
           ],
-          "title": "压力停滞信息",
+          "title": "Pressure Stall Information",
           "type": "timeseries"
         }
       ],
-      "title": "CPU / 内存 / 网络 / 磁盘",
+      "title": "CPU / Memory / Net / Disk",
       "type": "row"
     },
     {
@@ -3600,7 +3618,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示已提交内存与系统提交上限的对比。超过上限在 Linux 过度分配策略下是允许的，但在高负载下可能提高 OOM 风险",
+          "description": "Displays committed memory usage versus the system's commit limit. Exceeding the limit is allowed under Linux overcommit policies but may increase OOM risks under high load",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3722,7 +3740,7 @@
               "step": 240
             }
           ],
-          "title": "提交内存",
+          "title": "Memory Committed",
           "type": "timeseries"
         },
         {
@@ -3730,7 +3748,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "当前脏内存(已修改但未写盘)、正在写回以及写回缓冲占用。脏或写回内存高可能表示磁盘 IO 压力或刷新延迟",
+          "description": "Memory currently dirty (modified but not yet written to disk), being actively written back, or held by writeback buffers. High dirty or writeback memory may indicate disk I/O pressure or delayed flushing",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3852,7 +3870,7 @@
               "step": 240
             }
           ],
-          "title": "写回与脏页内存",
+          "title": "Memory Writeback and Dirty",
           "type": "timeseries"
         },
         {
@@ -3860,7 +3878,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核 slab 内存使用，分为可回收与不可回收。可回收在内存压力下可释放(如缓存)，不可回收为内核核心功能保留",
+          "description": "Kernel slab memory usage, separated into reclaimable and non-reclaimable categories. Reclaimable memory can be freed under memory pressure (e.g., caches), while unreclaimable memory is locked by the kernel for core functions",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3961,7 +3979,7 @@
               "step": 240
             }
           ],
-          "title": "Slab 内存",
+          "title": "Memory Slab",
           "type": "timeseries"
         },
         {
@@ -3969,7 +3987,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "用于映射文件(库等)和共享内存(shmem、tmpfs)的内存，包括使用大页的情况",
+          "description": "Memory used for mapped files (such as libraries) and shared memory (shmem and tmpfs), including variants backed by huge pages",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4093,7 +4111,7 @@
               "step": 240
             }
           ],
-          "title": "共享与映射内存",
+          "title": "Memory Shared and Mapped",
           "type": "timeseries"
         },
         {
@@ -4101,7 +4119,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核活跃与不活跃 LRU 列表内存页占总内存比例。活跃页近期被使用，不活跃页较少访问但仍驻留",
+          "description": "Proportion of memory pages in the kernel's active and inactive LRU lists relative to total RAM. Active pages have been recently used, while inactive pages are less recently accessed but still resident in memory",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4234,7 +4252,7 @@
               "step": 240
             }
           ],
-          "title": "内存 LRU 活跃 / 不活跃 (%)",
+          "title": "Memory LRU Active / Inactive (%)",
           "type": "timeseries"
         },
         {
@@ -4242,7 +4260,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核活跃与不活跃 LRU 列表内存页拆分，区分匿名(堆、tmpfs)与文件映射(缓存、mmap)页面",
+          "description": "Breakdown of memory pages in the kernel's active and inactive LRU lists, separated by anonymous (heap, tmpfs) and file-backed (caches, mmap) pages.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4368,7 +4386,7 @@
               "step": 240
             }
           ],
-          "title": "内存 LRU 活跃/不活跃详情",
+          "title": "Memory LRU Active / Inactive Detail",
           "type": "timeseries"
         },
         {
@@ -4376,7 +4394,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "跟踪内核用于 CPU 本地结构、线程栈以及在 DMA 受限设备上 IO 的 bounce 缓冲区的内存。通常很小但对底层操作关键",
+          "description": "Tracks kernel memory used for CPU-local structures, per-thread stacks, and bounce buffers used for I/O on DMA-limited devices. These areas are typically small but critical for low-level operations",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4491,7 +4509,7 @@
               "step": 240
             }
           ],
-          "title": "内核 / CPU / IO 内存",
+          "title": "Memory Kernel / CPU / IO",
           "type": "timeseries"
         },
         {
@@ -4499,7 +4517,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核 vmalloc 区域使用(模块与驱动虚拟内存分配)，包含总量、已用与最大空闲块大小",
+          "description": "Usage of the kernel's vmalloc area, which provides virtual memory allocations for kernel modules and drivers. Includes total, used, and largest free block sizes",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4643,7 +4661,7 @@
               "step": 240
             }
           ],
-          "title": "Vmalloc 内存",
+          "title": "Memory Vmalloc",
           "type": "timeseries"
         },
         {
@@ -4651,7 +4669,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "匿名页内存(非文件映射)，含普通与大页分配；包括堆、栈及匿名 mmap 区域",
+          "description": "Memory used by anonymous pages (not backed by files), including standard and huge page allocations. Includes heap, stack, and memory-mapped anonymous regions",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4752,7 +4770,7 @@
               "step": 240
             }
           ],
-          "title": "匿名内存",
+          "title": "Memory Anonymous",
           "type": "timeseries"
         },
         {
@@ -4760,7 +4778,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "锁定在 RAM 中不可换出的内存，含内核不可回收内存与用户通过 mlock() 锁定的内存",
+          "description": "Memory that is locked in RAM and cannot be swapped out. Includes both kernel-unevictable memory and user-level memory locked with mlock()",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -4878,7 +4896,7 @@
               "step": 240
             }
           ],
-          "title": "不可回收与锁定内存",
+          "title": "Memory Unevictable and MLocked",
           "type": "timeseries"
         },
         {
@@ -4886,7 +4904,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核直接映射区域中使用不同页大小(4K/2M/1G)的内存量，用于监控大页使用",
+          "description": "How much memory is directly mapped in the kernel using different page sizes (4K, 2M, 1G). Helps monitor large page utilization in the direct map region",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -5274,7 +5292,7 @@
               "step": 240
             }
           ],
-          "title": "DirectMap 内存",
+          "title": "Memory DirectMap",
           "type": "timeseries"
         },
         {
@@ -5282,7 +5300,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示 HugePages 内存使用(已分配、空闲、预留、盈余)，基于页数乘配置大小计算",
+          "description": "Displays HugePages memory usage in bytes, including allocated, free, reserved, and surplus memory. All values are calculated based on the number of huge pages multiplied by their configured size",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -5404,11 +5422,11 @@
               "step": 240
             }
           ],
-          "title": "HugePages 内存",
+          "title": "Memory HugePages",
           "type": "timeseries"
         }
       ],
-      "title": "内存 meminfo",
+      "title": "Memory Meminfo",
       "type": "row"
     },
     {
@@ -5426,7 +5444,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内存页读入/写出磁盘速率(page-in/page-out)，page-out 高可能表示内存压力或 swap 活动",
+          "description": "Rate of memory pages being read from or written to disk (page-in and page-out operations). High page-out may indicate memory pressure or swapping activity",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -5539,7 +5557,7 @@
               "step": 240
             }
           ],
-          "title": "内存页面 进/出",
+          "title": "Memory Pages In / Out",
           "type": "timeseries"
         },
         {
@@ -5547,7 +5565,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内存页 swap 进/出速率，swap-out 高可能表示内存压力",
+          "description": "Rate at which memory pages are being swapped in from or out to disk. High swap-out activity may indicate memory pressure",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -5660,7 +5678,7 @@
               "step": 240
             }
           ],
-          "title": "Swap 页面 进/出",
+          "title": "Memory Pages Swap In / Out",
           "type": "timeseries"
         },
         {
@@ -5668,7 +5686,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内存缺页率，拆分为总数、重大(磁盘)与次要(非磁盘)缺页；重大缺页高可能表示内存压力或不足",
+          "description": "Rate of memory page faults, split into total, major (disk-backed), and derived minor (non-disk) faults. High major fault rates may indicate memory pressure or insufficient RAM",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -5820,7 +5838,7 @@
               "step": 240
             }
           ],
-          "title": "内存缺页错误",
+          "title": "Memory Page Faults",
           "type": "timeseries"
         },
         {
@@ -5828,7 +5846,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "OOM Kill 事件速率，非零表示因内存耗尽被内核终止的进程",
+          "description": "Rate of Out-of-Memory (OOM) kill events. A non-zero value indicates the kernel has terminated one or more processes due to memory exhaustion",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -5940,7 +5958,7 @@
           "type": "timeseries"
         }
       ],
-      "title": "内存 vmstat",
+      "title": "Memory Vmstat",
       "type": "row"
     },
     {
@@ -5958,7 +5976,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "跟踪系统时钟估计与最大误差以及相对参考时钟(NTP)的偏移，用于检测同步漂移",
+          "description": "Tracks the system clock's estimated and maximum error, as well as its offset from the reference clock (e.g., via NTP). Useful for detecting synchronization drift",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6074,7 +6092,7 @@
               "step": 240
             }
           ],
-          "title": "时间同步漂移",
+          "title": "Time Synchronized Drift",
           "type": "timeseries"
         },
         {
@@ -6082,7 +6100,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核使用的 NTP PLL 时间常数，值低校正快但稳定性差",
+          "description": "NTP phase-locked loop (PLL) time constant used by the kernel to control time adjustments. Lower values mean faster correction but less stability",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6173,7 +6191,7 @@
               "step": 240
             }
           ],
-          "title": "时间 PLL 调整",
+          "title": "Time PLL Adjust",
           "type": "timeseries"
         },
         {
@@ -6181,7 +6199,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示系统时钟是否同步到可靠源，以及内核当前应用的频率校正比",
+          "description": "Shows whether the system clock is synchronized to a reliable time source, and the current frequency correction ratio applied by the kernel to maintain synchronization",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6307,7 +6325,7 @@
               "step": 240
             }
           ],
-          "title": "时间同步状态",
+          "title": "Time Synchronized Status",
           "type": "timeseries"
         },
         {
@@ -6315,7 +6333,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示 PPS 信号频率偏移与稳定性(抖动)，用于监控高精度时间源(GPS/原子钟)",
+          "description": "Displays the PPS signal's frequency offset and stability (jitter) in hertz. Useful for monitoring high-precision time sources like GPS or atomic clocks",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6417,7 +6435,7 @@
               "step": 240
             }
           ],
-          "title": "PPS 频率 / 稳定性",
+          "title": "PPS Frequency / Stability",
           "type": "timeseries"
         },
         {
@@ -6425,7 +6443,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "跟踪 PPS 信号相对系统时钟的时间抖动与偏移",
+          "description": "Tracks PPS signal timing jitter and shift compared to system clock",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6527,7 +6545,7 @@
               "step": 240
             }
           ],
-          "title": "PPS 时间精度",
+          "title": "PPS Time Accuracy",
           "type": "timeseries"
         },
         {
@@ -6535,7 +6553,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "PPS 同步诊断速率(校准事件/抖动违规/错误/频率稳定性超限)",
+          "description": "Rate of PPS synchronization diagnostics including calibration events, jitter violations, errors, and frequency stability exceedances",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6665,11 +6683,11 @@
               "step": 240
             }
           ],
-          "title": "PPS 同步事件",
+          "title": "PPS Sync Events",
           "type": "timeseries"
         }
       ],
-      "title": "系统时间同步",
+      "title": "System Timesync",
       "type": "row"
     },
     {
@@ -6687,7 +6705,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "当前处于可运行或阻塞状态的进程，有助识别 CPU 争用或 IO 等待瓶颈",
+          "description": "Processes currently in runnable or blocked states. Helps identify CPU contention or I/O wait bottlenecks.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6792,7 +6810,7 @@
               "step": 240
             }
           ],
-          "title": "进程状态",
+          "title": "Processes Status",
           "type": "timeseries"
         },
         {
@@ -6800,7 +6818,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各状态进程数量(运行/睡眠/僵尸)，需在 node_exporter 启用 --collector.processes",
+          "description": "Current number of processes in each state (e.g., running, sleeping, zombie). Requires --collector.processes to be enabled in node_exporter",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -6977,7 +6995,7 @@
               "step": 240
             }
           ],
-          "title": "进程详细状态",
+          "title": "Processes Detailed States",
           "type": "timeseries"
         },
         {
@@ -6985,7 +7003,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "系统中新建进程速率(forks/秒)",
+          "description": "Rate of new processes being created on the system (forks/sec).",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7077,7 +7095,7 @@
               "step": 240
             }
           ],
-          "title": "进程派生次数",
+          "title": "Processes Forks",
           "type": "timeseries"
         },
         {
@@ -7085,7 +7103,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每核心 CPU 饱和度：等待运行时间占(运行+等待)总需求时间比例",
+          "description": "Shows CPU saturation per core, calculated as the proportion of time spent waiting to run relative to total time demanded (running + waiting).",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7218,7 +7236,7 @@
               "step": 240
             }
           ],
-          "title": "各核心 CPU 饱和度",
+          "title": "CPU Saturation per Core",
           "type": "timeseries"
         },
         {
@@ -7226,7 +7244,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "活动 PID 数与最大允许值，用于检测 PID 耗尽风险(需 --collector.processes)",
+          "description": "Number of active PIDs on the system and the configured maximum allowed. Useful for detecting PID exhaustion risk. Requires --collector.processes in node_exporter",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7359,7 +7377,7 @@
               "step": 240
             }
           ],
-          "title": "PID 数量与上限",
+          "title": "PIDs Number and Limit",
           "type": "timeseries"
         },
         {
@@ -7367,7 +7385,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "活动线程数与线程上限，用于监控线程压力(需 --collector.processes)",
+          "description": "Number of active threads on the system and the configured thread limit. Useful for monitoring thread pressure. Requires --collector.processes in node_exporter",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7500,11 +7518,11 @@
               "step": 240
             }
           ],
-          "title": "线程数量与上限",
+          "title": "Threads Number and Limit",
           "type": "timeseries"
         }
       ],
-      "title": "系统进程",
+      "title": "System Processes",
       "type": "row"
     },
     {
@@ -7522,7 +7540,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "上下文切换与硬件中断每秒速率，过高可能表示 CPU 或 IO 活动剧烈",
+          "description": "Per-second rate of context switches and hardware interrupts. High values may indicate intense CPU or I/O activity",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7624,7 +7642,7 @@
               "step": 240
             }
           ],
-          "title": "上下文切换 / 中断",
+          "title": "Context Switches / Interrupts",
           "type": "timeseries"
         },
         {
@@ -7632,7 +7650,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "1/5/15 分钟系统负载均值，反映活跃或等待进程数，超出核心数可能过载",
+          "description": "System load average over 1, 5, and 15 minutes. Reflects the number of active or waiting processes. Values above CPU core count may indicate overload",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7784,7 +7802,7 @@
               "step": 240
             }
           ],
-          "title": "系统负载 (旧)",
+          "title": "System Load",
           "type": "timeseries"
         },
         {
@@ -7792,7 +7810,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各核心实时 CPU 频率缩放，含最小与最大允许频率平均值",
+          "description": "Real-time CPU frequency scaling per core, including average minimum and maximum allowed scaling frequencies",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -7975,7 +7993,7 @@
               "step": 240
             }
           ],
-          "title": "CPU 频率动态调节",
+          "title": "CPU Frequency Scaling",
           "type": "timeseries"
         },
         {
@@ -7983,7 +8001,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每 CPU 已执行调度时间片速率，反映调度器切换任务频度",
+          "description": "Rate of scheduling timeslices executed per CPU. Reflects how frequently the scheduler switches tasks on each core",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8074,7 +8092,7 @@
               "step": 240
             }
           ],
-          "title": "CPU 调度时间片",
+          "title": "CPU Schedule Timeslices",
           "type": "timeseries"
         },
         {
@@ -8082,7 +8100,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "按类型与设备拆分硬件中断，诊断网络/磁盘/CPU IRQ 负载(需 --collector.interrupts)",
+          "description": "Breaks down hardware interrupts by type and device. Useful for diagnosing IRQ load on network, disk, or CPU interfaces. Requires --collector.interrupts to be enabled in node_exporter",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8174,7 +8192,7 @@
               "step": 240
             }
           ],
-          "title": "IRQ 详情",
+          "title": "IRQ Detail",
           "type": "timeseries"
         },
         {
@@ -8182,7 +8200,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "系统随机数生成器当前可用熵位数。熵低可能导致阻塞或加密性能下降",
+          "description": "Number of bits of entropy currently available to the system's random number generators (e.g., /dev/random). Low values may indicate that random number generation could block or degrade performance of cryptographic operations",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8314,11 +8332,11 @@
               "step": 240
             }
           ],
-          "title": "熵池",
+          "title": "Entropy",
           "type": "timeseries"
         }
       ],
-      "title": "系统杂项",
+      "title": "System Misc",
       "type": "row"
     },
     {
@@ -8336,7 +8354,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "监控 hwmon 暴露的硬件传感器温度与阈值，包括 CPU/GPU/主板",
+          "description": "Monitors hardware sensor temperatures and critical thresholds as exposed by Linux hwmon. Includes CPU, GPU, and motherboard sensors where available",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8489,7 +8507,7 @@
               "step": 240
             }
           ],
-          "title": "硬件温度监控",
+          "title": "Hardware Temperature Monitor",
           "type": "timeseries"
         },
         {
@@ -8497,7 +8515,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示每个散热设备(风扇/限频)使用强度占最大能力的比例",
+          "description": "Shows how hard each cooling device (fan/throttle) is working relative to its maximum capacity",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8609,7 +8627,7 @@
               "step": 240
             }
           ],
-          "title": "散热设备利用率",
+          "title": "Cooling Device Utilization",
           "type": "timeseries"
         },
         {
@@ -8617,7 +8635,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示电源(如交流/电池)在线状态，1-Yes 表示处于活动/在线",
+          "description": "Shows the online status of power supplies (e.g., AC, battery). A value of 1-Yes indicates the power supply is active/online",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8713,7 +8731,7 @@
               "step": 240
             }
           ],
-          "title": "电源",
+          "title": "Power Supply",
           "type": "timeseries"
         },
         {
@@ -8721,7 +8739,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "显示通过 hwmon 接口读取的当前风扇转速(RPM)",
+          "description": "Displays the current fan speeds (RPM) from hardware sensors via the hwmon interface",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -8825,11 +8843,11 @@
               "step": 240
             }
           ],
-          "title": "硬件风扇速度",
+          "title": "Hardware Fan Speed",
           "type": "timeseries"
         }
       ],
-      "title": "硬件杂项",
+      "title": "Hardware Misc",
       "type": "row"
     },
     {
@@ -8847,7 +8865,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各 systemd 单元的当前状态数量(active/failed/inactive/转换中)",
+          "description": "Current number of systemd units in each operational state, such as active, failed, inactive, or transitioning",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9058,7 +9076,7 @@
               "step": 240
             }
           ],
-          "title": "Systemd 单元状态",
+          "title": "Systemd Units State",
           "type": "timeseries"
         },
         {
@@ -9066,7 +9084,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个 systemd 套接字的活动连接数(来自 node_exporter systemd collector)",
+          "description": "Current number of active connections per systemd socket, as reported by the Node Exporter systemd collector",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9158,7 +9176,7 @@
               "step": 240
             }
           ],
-          "title": "Systemd 当前套接字",
+          "title": "Systemd Sockets Current",
           "type": "timeseries"
         },
         {
@@ -9166,7 +9184,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每 systemd 套接字每秒接受连接速率",
+          "description": "Rate of accepted connections per second for each systemd socket",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9258,7 +9276,7 @@
               "step": 240
             }
           ],
-          "title": "Systemd 接受的套接字",
+          "title": "Systemd Sockets Accepted",
           "type": "timeseries"
         },
         {
@@ -9266,7 +9284,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "systemd 套接字每秒拒绝连接速率(服务不可用或队列溢出)",
+          "description": "Rate of systemd socket connection refusals per second, typically due to service unavailability or backlog overflow",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9358,7 +9376,7 @@
               "step": 240
             }
           ],
-          "title": "Systemd 拒绝的套接字",
+          "title": "Systemd Sockets Refused",
           "type": "timeseries"
         }
       ],
@@ -9380,7 +9398,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "设备每秒完成的 IO 操作数(合并后，含读写)",
+          "description": "Number of I/O operations completed per second for the device (after merges), including both reads and writes",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9506,7 +9524,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘读写 IOps",
+          "title": "Disk Read/Write IOps",
           "type": "timeseries"
         },
         {
@@ -9514,7 +9532,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "设备每秒读写字节数",
+          "description": "Number of bytes read from or written to the device per second",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9644,7 +9662,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘读写数据量",
+          "title": "Disk Read/Write Data",
           "type": "timeseries"
         },
         {
@@ -9652,7 +9670,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "设备请求平均服务时间(含排队与服务时间)",
+          "description": "Average time for requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9782,7 +9800,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘平均等待时间",
+          "title": "Disk Average Wait Time",
           "type": "timeseries"
         },
         {
@@ -9790,7 +9808,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "设备请求平均队列长度",
+          "description": "Average queue length of the requests that were issued to the device",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -9897,7 +9915,7 @@
               "step": 240
             }
           ],
-          "title": "平均队列大小",
+          "title": "Average Queue Size",
           "type": "timeseries"
         },
         {
@@ -9905,7 +9923,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "设备队列中每秒合并的读写请求数",
+          "description": "Number of read and write requests merged per second that were queued to the device",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10031,7 +10049,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘读写合并",
+          "title": "Disk R/W Merged",
           "type": "timeseries"
         },
         {
@@ -10039,7 +10057,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "磁盘积极处理 IO(普通IO/丢弃/TRIM/写缓存刷新)的时间百分比",
+          "description": "Percentage of time the disk spent actively processing I/O operations, including general I/O, discards (TRIM), and write cache flushes",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10167,7 +10185,7 @@
               "step": 240
             }
           ],
-          "title": "IO 耗时",
+          "title": "Time Spent Doing I/Os",
           "type": "timeseries"
         },
         {
@@ -10175,7 +10193,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每秒丢弃(TRIM)与刷新(写缓存)操作速率，用于监控 SSD 低层活动",
+          "description": "Per-second rate of discard (TRIM) and flush (write cache) operations. Useful for monitoring low-level disk activity on SSDs and advanced storage",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10302,7 +10320,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘操作 丢弃/刷新",
+          "title": "Disk Ops Discards / Flush",
           "type": "timeseries"
         },
         {
@@ -10310,7 +10328,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每秒被丢弃(TRIM)的磁盘扇区数，监控 SSD 行为与效率",
+          "description": "Shows how many disk sectors are discarded (TRIMed) per second. Useful for monitoring SSD behavior and storage efficiency",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10416,7 +10434,7 @@
               "step": 240
             }
           ],
-          "title": "磁盘成功丢弃的扇区",
+          "title": "Disk Sectors Discarded Successfully",
           "type": "timeseries"
         },
         {
@@ -10424,7 +10442,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "采样时进行中的 IO 请求数(队列中活动请求)",
+          "description": "Number of in-progress I/O requests at the time of sampling (active requests in the disk queue)",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10531,11 +10549,11 @@
               "step": 240
             }
           ],
-          "title": "瞬时队列大小",
+          "title": "Instantaneous Queue Size",
           "type": "timeseries"
         }
       ],
-      "title": "存储磁盘",
+      "title": "Storage Disk",
       "type": "row"
     },
     {
@@ -10553,7 +10571,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "系统当前已分配文件描述符与上限，对检测耗尽风险重要",
+          "description": "Number of file descriptors currently allocated system-wide versus the system limit. Important for detecting descriptor exhaustion risks",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10684,7 +10702,7 @@
               "step": 240
             }
           ],
-          "title": "文件描述符",
+          "title": "File Descriptor",
           "type": "timeseries"
         },
         {
@@ -10692,7 +10710,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每个挂载文件系统可用的空闲 inode 数，过低可能阻止创建文件",
+          "description": "Number of free file nodes (inodes) available per mounted filesystem. A low count may prevent file creation even if disk space is available",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10784,7 +10802,7 @@
               "step": 240
             }
           ],
-          "title": "空闲文件节点",
+          "title": "File Nodes Free",
           "type": "timeseries"
         },
         {
@@ -10792,7 +10810,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "指示以只读挂载或报告设备级 IO 错误的文件系统",
+          "description": "Indicates filesystems mounted in read-only mode or reporting device-level I/O errors.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10895,7 +10913,7 @@
               "step": 240
             }
           ],
-          "title": "文件系统 只读/错误",
+          "title": "Filesystem in ReadOnly / Error",
           "type": "timeseries"
         },
         {
@@ -10903,7 +10921,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每挂载文件系统可用 inode 总数，反映最大文件容量",
+          "description": "Number of file nodes (inodes) available per mounted filesystem. Reflects maximum file capacity regardless of disk size",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -10995,11 +11013,11 @@
               "step": 240
             }
           ],
-          "title": "文件节点容量",
+          "title": "File Nodes Size",
           "type": "timeseries"
         }
       ],
-      "title": "存储文件系统",
+      "title": "Storage Filesystem",
       "type": "row"
     },
     {
@@ -11017,7 +11035,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "按接口每秒接收与发送的网络包数",
+          "description": "Number of network packets received and transmitted per second, by interface.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11133,7 +11151,7 @@
               "step": 240
             }
           ],
-          "title": "按包的网络流量",
+          "title": "Network Traffic by Packets",
           "type": "timeseries"
         },
         {
@@ -11141,7 +11159,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各接口包级错误速率；接收错误可能物理/驱动问题；发送错误多为冲突或硬件故障",
+          "description": "Rate of packet-level errors for each network interface. Receive errors may indicate physical or driver issues; transmit errors may reflect collisions or hardware faults",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11255,7 +11273,7 @@
               "step": 240
             }
           ],
-          "title": "网络错误",
+          "title": "Network Traffic Errors",
           "type": "timeseries"
         },
         {
@@ -11263,7 +11281,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各接口丢包速率；接收丢包可能缓冲溢出或驱动问题；发送丢包可能出站拥塞或队列限制",
+          "description": "Rate of dropped packets per network interface. Receive drops can indicate buffer overflow or driver issues; transmit drops may result from outbound congestion or queuing limits",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11377,7 +11395,7 @@
               "step": 240
             }
           ],
-          "title": "网络丢包",
+          "title": "Network Traffic Drop",
           "type": "timeseries"
         },
         {
@@ -11385,7 +11403,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每接口压缩网络包收发速率，常见于低带宽或特殊接口(如 PPP/SLIP)",
+          "description": "Rate of compressed network packets received and transmitted per interface. These are common in low-bandwidth or special interfaces like PPP or SLIP",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11499,7 +11517,7 @@
               "step": 240
             }
           ],
-          "title": "网络压缩流量",
+          "title": "Network Traffic Compressed",
           "type": "timeseries"
         },
         {
@@ -11507,7 +11525,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每接口接收的组播包速率(mDNS/SSDP/流媒体/集群协议)",
+          "description": "Rate of incoming multicast packets received per network interface. Multicast is used by protocols such as mDNS, SSDP, and some streaming or cluster services",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11611,7 +11629,7 @@
               "step": 240
             }
           ],
-          "title": "网络组播",
+          "title": "Network Traffic Multicast",
           "type": "timeseries"
         },
         {
@@ -11619,7 +11637,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "因缺少协议/处理器无法解析的接收包速率，可能不受支持或配置错误",
+          "description": "Rate of received packets that could not be processed due to missing protocol or handler in the kernel. May indicate unsupported traffic or misconfiguration",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11723,7 +11741,7 @@
               "step": 240
             }
           ],
-          "title": "网络未处理",
+          "title": "Network Traffic NoHandler",
           "type": "timeseries"
         },
         {
@@ -11731,7 +11749,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "接收包帧错误速率，通常为物理层问题(线缆/双工不匹配/硬件故障)",
+          "description": "Rate of frame errors on received packets, typically caused by physical layer issues such as bad cables, duplex mismatches, or hardware problems",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11836,7 +11854,7 @@
               "step": 240
             }
           ],
-          "title": "网络帧",
+          "title": "Network Traffic Frame",
           "type": "timeseries"
         },
         {
@@ -11844,7 +11862,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "网络接口 FIFO 缓冲溢出错误(入/出包因队列或缓冲溢出丢弃)",
+          "description": "Tracks FIFO buffer overrun errors on network interfaces. These occur when incoming or outgoing packets are dropped due to queue or buffer overflows, often indicating congestion or hardware limits",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -11958,7 +11976,7 @@
               "step": 240
             }
           ],
-          "title": "网络 FIFO",
+          "title": "Network Traffic Fifo",
           "type": "timeseries"
         },
         {
@@ -11966,7 +11984,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "发送时检测到的包冲突速率，多见于半双工或旧式以太网",
+          "description": "Rate of packet collisions detected during transmission. Mostly relevant on half-duplex or legacy Ethernet networks",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12070,7 +12088,7 @@
               "step": 240
             }
           ],
-          "title": "网络冲突",
+          "title": "Network Traffic Collision",
           "type": "timeseries"
         },
         {
@@ -12078,7 +12096,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "传输期间载波错误速率，通常为物理层问题(故障线缆/双工不匹配)",
+          "description": "Rate of carrier errors during transmission. These typically indicate physical layer issues like faulty cabling or duplex mismatches",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12169,7 +12187,7 @@
               "step": 240
             }
           ],
-          "title": "网络承载错误",
+          "title": "Network Traffic Carrier Errors",
           "type": "timeseries"
         },
         {
@@ -12177,7 +12195,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每接口 ARP 条目数，用于检测过多 ARP 流量或扫描/错误配置导致的表增长",
+          "description": "Number of ARP entries per interface. Useful for detecting excessive ARP traffic or table growth due to scanning or misconfiguration",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12268,7 +12286,7 @@
               "step": 240
             }
           ],
-          "title": "ARP 条目",
+          "title": "ARP Entries",
           "type": "timeseries"
         },
         {
@@ -12276,7 +12294,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "Netfilter (nf_conntrack) 当前与最大连接跟踪条目，高占用接近上限可能导致丢包或连接问题",
+          "description": "Current and maximum connection tracking entries used by Netfilter (nf_conntrack). High usage approaching the limit may cause packet drops or connection issues",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12407,7 +12425,7 @@
               "step": 240
             }
           ],
-          "title": "NF 连接跟踪",
+          "title": "NF Conntrack",
           "type": "timeseries"
         },
         {
@@ -12515,7 +12533,7 @@
               "refId": "B"
             }
           ],
-          "title": "网络运行状态",
+          "title": "Network Operational Status",
           "type": "timeseries"
         },
         {
@@ -12523,7 +12541,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "操作系统报告的各网络接口最大速率，静态硬件能力非当前吞吐",
+          "description": "Maximum speed of each network interface as reported by the operating system. This is a static hardware capability, not current throughput",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12590,7 +12608,7 @@
               "step": 240
             }
           ],
-          "title": "速度",
+          "title": "Speed",
           "type": "bargauge"
         },
         {
@@ -12598,7 +12616,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各网络接口的 MTU(最大传输单元，字节)，影响包大小与传输效率",
+          "description": "MTU (Maximum Transmission Unit) in bytes for each network interface. Affects packet size and transmission efficiency",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12668,7 +12686,7 @@
           "type": "bargauge"
         }
       ],
-      "title": "网络流量",
+      "title": "Network Traffic",
       "type": "row"
     },
     {
@@ -12686,7 +12704,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "跟踪节点 TCP 套接字使用与内存",
+          "description": "Tracks TCP socket usage and memory per node",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12820,7 +12838,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "当前使用的 UDP 与 UDPLite 套接字数量",
+          "description": "Number of UDP and UDPLite sockets currently in use",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -12932,7 +12950,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "所有协议(TCP/UDP/UNIX 等)正在使用的套接字总数(/proc/net/sockstat)",
+          "description": "Total number of sockets currently in use across all protocols (TCP, UDP, UNIX, etc.), as reported by /proc/net/sockstat",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13025,7 +13043,7 @@
               "step": 240
             }
           ],
-          "title": "Sockstat 使用情况",
+          "title": "Sockstat Used",
           "type": "timeseries"
         },
         {
@@ -13033,7 +13051,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "当前使用的 FRAG 与 RAW 套接字数量；RAW 用于自定义协议或工具(ping)，FRAG 用于 IP 分片重组",
+          "description": "Number of FRAG and RAW sockets currently in use. RAW sockets are used for custom protocols or tools like ping; FRAG sockets are used internally for IP packet defragmentation",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13145,7 +13163,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核中 TCP/UDP 套接字内存使用(页)",
+          "description": "TCP/UDP socket memory usage in kernel (in pages)",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13249,7 +13267,7 @@
               "step": 240
             }
           ],
-          "title": "TCP/UDP 内核缓冲内存页",
+          "title": "TCP/UDP Kernel Buffer Memory Pages",
           "type": "timeseries"
         },
         {
@@ -13257,7 +13275,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "TCP/UDP/IP 分片缓冲使用的内核内存",
+          "description": "Kernel memory used by TCP, UDP, and IP fragmentation buffers",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13370,7 +13388,7 @@
               "refId": "C"
             }
           ],
-          "title": "Sockstat 内存大小",
+          "title": "Sockstat Memory Size",
           "type": "timeseries"
         },
         {
@@ -13378,7 +13396,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "Softnet 网络栈每 CPU 处理与丢弃的包数，丢弃可能表示 CPU 饱和或驱动限制",
+          "description": "Packets processed and dropped by the softnet network stack per CPU. Drops may indicate CPU saturation or network driver limitations",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13494,7 +13512,7 @@
               "step": 240
             }
           ],
-          "title": "Softnet 包",
+          "title": "Softnet Packets",
           "type": "timeseries"
         },
         {
@@ -13502,7 +13520,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "内核未能在时间内处理完 softnet 队列包的频率，频繁发生可能 CPU 争用或驱动低效",
+          "description": "How often the kernel was unable to process all packets in the softnet queue before time ran out. Frequent squeezes may indicate CPU contention or driver inefficiency",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13598,7 +13616,7 @@
               "step": 240
             }
           ],
-          "title": "Softnet 配额耗尽",
+          "title": "Softnet Out of Quota",
           "type": "timeseries"
         },
         {
@@ -13606,7 +13624,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "跟踪 RPS(分布包处理到多 CPU)处理或丢弃的包数",
+          "description": "Tracks the number of packets processed or dropped by Receive Packet Steering (RPS), a mechanism to distribute packet processing across CPUs",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13734,7 +13752,7 @@
           "type": "timeseries"
         }
       ],
-      "title": "网络 sockstat",
+      "title": "Network Sockstat",
       "type": "row"
     },
     {
@@ -13752,7 +13770,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "IP 层发送与接收的八位字节速率(/proc/net/netstat)",
+          "description": "Rate of octets sent and received at the IP layer, as reported by /proc/net/netstat",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -13867,7 +13885,7 @@
               "step": 240
             }
           ],
-          "title": "IP 收/发字节 (netstat)",
+          "title": "Netstat IP In / Out Octets",
           "type": "timeseries"
         },
         {
@@ -13875,7 +13893,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "TCP 段(数据与控制)每秒发送与接收速率",
+          "description": "Rate of TCP segments sent and received per second, including data and control segments",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14001,7 +14019,7 @@
               "step": 240
             }
           ],
-          "title": "TCP 收/发",
+          "title": "TCP In / Out",
           "type": "timeseries"
         },
         {
@@ -14009,7 +14027,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "UDP 数据报每秒发送与接收速率(/proc/net/netstat)",
+          "description": "Rate of UDP datagrams sent and received per second, based on /proc/net/netstat",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14124,7 +14142,7 @@
               "step": 240
             }
           ],
-          "title": "UDP 收/发",
+          "title": "UDP In / Out",
           "type": "timeseries"
         },
         {
@@ -14132,7 +14150,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "ICMP 消息(含错误与控制)每秒收发数量",
+          "description": "Number of ICMP messages sent and received per second, including error and control messages",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14251,7 +14269,7 @@
               "step": 240
             }
           ],
-          "title": "ICMP 收/发",
+          "title": "ICMP In / Out",
           "type": "timeseries"
         },
         {
@@ -14259,7 +14277,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "跟踪 TCP 错误与拥塞事件(重传/超时/连接丢失/缓冲问题)",
+          "description": "Tracks various TCP error and congestion-related events, including retransmissions, timeouts, dropped connections, and buffer issues",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14426,7 +14444,7 @@
               "refId": "I"
             }
           ],
-          "title": "TCP 错误",
+          "title": "TCP Errors",
           "type": "timeseries"
         },
         {
@@ -14434,7 +14452,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "UDP/UDPLite 数据报投递错误速率(无监听/缓冲溢出/协议问题)",
+          "description": "Rate of UDP and UDPLite datagram delivery errors, including missing listeners, buffer overflows, and protocol-specific issues",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14570,7 +14588,7 @@
               "step": 240
             }
           ],
-          "title": "UDP 错误",
+          "title": "UDP Errors",
           "type": "timeseries"
         },
         {
@@ -14578,7 +14596,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "含协议特定错误(校验和错误/长度无效)的入站 ICMP 消息速率",
+          "description": "Rate of incoming ICMP messages that contained protocol-specific errors, such as bad checksums or invalid lengths",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14682,7 +14700,7 @@
               "step": 240
             }
           ],
-          "title": "ICMP 错误",
+          "title": "ICMP Errors",
           "type": "timeseries"
         },
         {
@@ -14690,7 +14708,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "TCP SYN cookie 发送/验证/失败速率，用于抵御 SYN Flood 并管理握手资源",
+          "description": "Rate of TCP SYN cookies sent, validated, and failed. These are used to protect against SYN flood attacks and manage TCP handshake resources under load",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14830,7 +14848,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "当前已建立 TCP 连接数与系统最大支持上限，Linux 中 -1 表示动态/无限",
+          "description": "Number of currently established TCP connections and the system's max supported limit. On Linux, MaxConn may return -1 to indicate a dynamic/unlimited configuration",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -14965,7 +14983,7 @@
               "step": 240
             }
           ],
-          "title": "TCP 连接",
+          "title": "TCP Connections",
           "type": "timeseries"
         },
         {
@@ -14973,7 +14991,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "接收(RX)/发送(TX)缓冲中当前排队的 UDP 包数，增长可能是瓶颈",
+          "description": "Number of UDP packets currently queued in the receive (RX) and transmit (TX) buffers. A growing queue may indicate a bottleneck",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15077,7 +15095,7 @@
               "step": 240
             }
           ],
-          "title": "UDP 队列",
+          "title": "UDP Queue",
           "type": "timeseries"
         },
         {
@@ -15085,7 +15103,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "每秒 TCP 连接建立速率；Active 为本地主动；Passive 为接受入站",
+          "description": "Rate of TCP connection initiations per second. 'Active' opens are initiated by this host. 'Passive' opens are accepted from incoming connections",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15188,7 +15206,7 @@
               "step": 240
             }
           ],
-          "title": "TCP 直接转换",
+          "title": "TCP Direct Transition",
           "type": "timeseries"
         },
         {
@@ -15196,7 +15214,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "关键连接状态中的 TCP 套接字数量(需 --collector.tcpstat)",
+          "description": "Number of TCP sockets in key connection states. Requires the --collector.tcpstat flag on node_exporter",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15337,11 +15355,11 @@
               "step": 240
             }
           ],
-          "title": "TCP 统计",
+          "title": "TCP Stat",
           "type": "timeseries"
         }
       ],
-      "title": "网络 netstat",
+      "title": "Network Netstat",
       "type": "row"
     },
     {
@@ -15359,7 +15377,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "Node Exporter 抓取期间各 collector 执行时长，用于识别慢或失败的 collector",
+          "description": "Duration of each individual collector executed during a Node Exporter scrape. Useful for identifying slow or failing collectors",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15455,7 +15473,7 @@
               "step": 240
             }
           ],
-          "title": "Node Exporter 抓取耗时",
+          "title": "Node Exporter Scrape Time",
           "type": "timeseries"
         },
         {
@@ -15463,7 +15481,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "暴露该指标的进程 CPU 时间使用速率(用户+系统态)",
+          "description": "Rate of CPU time used by the process exposing this metric (user + system mode)",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15554,7 +15572,7 @@
               "step": 240
             }
           ],
-          "title": "Exporter 进程 CPU 使用",
+          "title": "Exporter Process CPU Usage",
           "type": "timeseries"
         },
         {
@@ -15562,7 +15580,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "暴露指标的进程内存使用(当前虚拟内存及最大限制)",
+          "description": "Tracks the memory usage of the process exposing this metric (e.g., node_exporter), including current virtual memory and maximum virtual memory limit",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15719,7 +15737,7 @@
               "step": 240
             }
           ],
-          "title": "Exporter 进程内存",
+          "title": "Exporter Processes Memory",
           "type": "timeseries"
         },
         {
@@ -15727,7 +15745,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "Exporter 进程使用的文件描述符数与配置上限",
+          "description": "Number of file descriptors used by the exporter process versus its configured limit",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15882,7 +15900,7 @@
               "step": 240
             }
           ],
-          "title": "Exporter 文件描述符使用",
+          "title": "Exporter File Descriptor Usage",
           "type": "timeseries"
         },
         {
@@ -15890,7 +15908,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "description": "各 Node Exporter collector 抓取是否成功(1=成功,0=失败)，以及 textfile collector 是否出错",
+          "description": "Shows whether each Node Exporter collector scraped successfully (1 = success, 0 = failure), and whether the textfile collector returned an error.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15976,7 +15994,7 @@
               "step": 240
             }
           ],
-          "title": "Node Exporter 抓取",
+          "title": "Node Exporter Scrape",
           "type": "bargauge"
         }
       ],
@@ -16088,7 +16106,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Kubernetes 节点监控面板",
+  "title": "Node Exporter Full",
   "uid": "rYdddlPWk",
   "version": 96,
   "weekStart": "",

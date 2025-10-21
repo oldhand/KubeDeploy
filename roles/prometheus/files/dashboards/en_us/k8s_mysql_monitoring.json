@@ -176,7 +176,7 @@
     {
       "cacheTimeout": null,
       "datasource": "${DS_PROMETHEUS}",
-      "description": "**MySQL 运行时间**\n\n自上次 MySQL 服务器进程重启以来的运行时长。",
+      "description": "**MySQL Uptime**\n\nThe amount of time since the last restart of the MySQL server process.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -246,13 +246,13 @@
           "step": 300
         }
       ],
-      "title": "MySQL运行时间",
+      "title": "MySQL Uptime",
       "type": "stat"
     },
     {
       "cacheTimeout": null,
       "datasource": "${DS_PROMETHEUS}",
-      "description": "**当前 QPS**\n\n基于 MySQL `SHOW STATUS` 命令中的 queries 统计，表示服务器最近 1 秒内执行的语句数量。该变量包括存储过程内执行的语句（与 Questions 不同），且不统计 `COM_PING` 与 `COM_STATISTICS`。",
+      "description": "**Current QPS**\n\nBased on the queries reported by MySQL's ``SHOW STATUS`` command, it is the number of statements executed by the server within the last second. This variable includes statements executed within stored programs, unlike the Questions variable. It does not count \n``COM_PING`` or ``COM_STATISTICS`` commands.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -290,6 +290,13 @@
       },
       "id": 13,
       "interval": "$interval",
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "MySQL Server Status Variables",
+          "url": "https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Queries"
+        }
+      ],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
@@ -322,13 +329,13 @@
           "step": 20
         }
       ],
-      "title": "当前QPS",
+      "title": "Current QPS",
       "type": "stat"
     },
     {
       "cacheTimeout": null,
       "datasource": "${DS_PROMETHEUS}",
-      "description": "**InnoDB 缓冲池大小**\n\nInnoDB 维护一个称为缓冲池的内存区域用于缓存数据与索引。理解并利用缓冲池将热点数据留在内存中，是 MySQL 调优中最关键的部分之一。目标是让工作集驻留内存。专用数据库主机上通常应为可用内存的 60%-90%，具体取决于多种因素。",
+      "description": "**InnoDB Buffer Pool Size**\n\nInnoDB maintains a storage area called the buffer pool for caching data and indexes in memory.  Knowing how the InnoDB buffer pool works, and taking advantage of it to keep frequently accessed data in memory, is one of the most important aspects of MySQL tuning. The goal is to keep the working set in memory. In most cases, this should be between 60%-90% of available memory on a dedicated database host, but depends on many factors.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -365,6 +372,13 @@
       },
       "id": 51,
       "interval": "$interval",
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Tuning the InnoDB Buffer Pool Size",
+          "url": "https://www.percona.com/blog/2015/06/02/80-ram-tune-innodb_buffer_pool_size/"
+        }
+      ],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
@@ -397,13 +411,13 @@
           "step": 300
         }
       ],
-      "title": "InnoDB缓冲池大小",
+      "title": "InnoDB Buffer Pool Size",
       "type": "stat"
     },
     {
       "cacheTimeout": null,
       "datasource": "${DS_PROMETHEUS}",
-      "description": "**InnoDB 缓冲池占总内存百分比**\n\n缓冲池用于缓存数据与索引。应将热点工作集尽可能保留在缓冲池中。专用数据库主机上通常建议缓冲池大小为总内存的 60%-90%。",
+      "description": "**InnoDB Buffer Pool Size % of Total RAM**\n\nInnoDB maintains a storage area called the buffer pool for caching data and indexes in memory.  Knowing how the InnoDB buffer pool works, and taking advantage of it to keep frequently accessed data in memory, is one of the most important aspects of MySQL tuning. The goal is to keep the working set in memory. In most cases, this should be between 60%-90% of available memory on a dedicated database host, but depends on many factors.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -440,6 +454,13 @@
       },
       "id": 52,
       "interval": "$interval",
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Tuning the InnoDB Buffer Pool Size",
+          "url": "https://www.percona.com/blog/2015/06/02/80-ram-tune-innodb_buffer_pool_size/"
+        }
+      ],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
@@ -473,7 +494,7 @@
           "step": 300
         }
       ],
-      "title": "缓冲池占总内存百分比",
+      "title": "Buffer Pool Size of Total RAM",
       "type": "stat"
     },
     {
@@ -488,7 +509,7 @@
       "id": 383,
       "panels": [],
       "repeat": null,
-      "title": "连接",
+      "title": "Connections",
       "type": "row"
     },
     {
@@ -498,7 +519,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 0,
-      "description": "**最大连接数**\n\nMax Connections 是允许的最大同时客户端连接数，默认 151。增大该值会提高 mysqld 所需文件描述符数量，若不足则服务器会降低此值。mysqld 实际允许 Max Connections + 1，其中额外的 1 保留给具有 SUPER 权限的账号（如 root）。\n\nMax Used Connections 是自服务器启动以来并发使用的最大连接数。\n\nConnections 是到 MySQL 的连接尝试次数（成功或失败）。",
+      "description": "**Max Connections** \n\nMax Connections is the maximum permitted number of simultaneous client connections. By default, this is 151. Increasing this value increases the number of file descriptors that mysqld requires. If the required number of descriptors are not available, the server reduces the value of Max Connections.\n\nmysqld actually permits Max Connections + 1 clients to connect. The extra connection is reserved for use by accounts that have the SUPER privilege, such as root.\n\nMax Used Connections is the maximum number of connections that have been in use simultaneously since the server started.\n\nConnections is the number of connection attempts (successful or not) to the MySQL server.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -527,6 +548,13 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "MySQL Server System Variables",
+          "url": "https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_max_connections"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -592,7 +620,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL连接数",
+      "title": "MySQL Connections",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -637,7 +665,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 活跃线程**\n\nThreads Connected 表示已打开的连接数；Threads Running 表示未处于睡眠的运行线程数。",
+      "description": "**MySQL Active Threads**\n\nThreads Connected is the number of open connections, while Threads Running is the number of threads not sleeping.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -737,7 +765,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL客户端线程活动",
+      "title": "MySQL Client Thread Activity",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -789,7 +817,7 @@
       "id": 384,
       "panels": [],
       "repeat": null,
-      "title": "表锁",
+      "title": "Table Locks",
       "type": "row"
     },
     {
@@ -799,7 +827,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": null,
-      "description": "**MySQL Questions**\n\n服务器执行的语句数量，仅包含客户端发送的语句，不包括存储程序内部执行的语句（与 QPS 中的 Queries 不同）。不统计以下命令：`COM_PING`、`COM_STATISTICS`、`COM_STMT_PREPARE`、`COM_STMT_CLOSE`、`COM_STMT_RESET`。",
+      "description": "**MySQL Questions**\n\nThe number of statements executed by the server. This includes only statements sent to the server by clients and not statements executed within stored programs, unlike the Queries used in the QPS calculation. \n\nThis variable does not count the following commands:\n* ``COM_PING``\n* ``COM_STATISTICS``\n* ``COM_STMT_PREPARE``\n* ``COM_STMT_CLOSE``\n* ``COM_STMT_RESET``",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -826,6 +854,13 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "MySQL Queries and Questions",
+          "url": "https://www.percona.com/blog/2014/05/29/how-mysql-queries-and-questions-are-measured/"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -858,7 +893,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL问题数(Questions)",
+      "title": "MySQL Questions",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -901,7 +936,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 线程缓存**\n\nthread_cache_size 控制服务器可缓存复用的线程数量。客户端断开时若缓存未满其线程会放入缓存。MySQL 5.6.8+ 自动调整（上限 100）。优先复用缓存线程，仅在缓存为空时创建新线程。\n\n* Threads_created：为处理连接而创建的线程数。\n* Threads_cached：线程缓存中的线程数。",
+      "description": "**MySQL Thread Cache**\n\nThe thread_cache_size variable sets how many threads the server should cache to reuse. When a client disconnects, the client's threads are put in the cache if the cache is not full. It is autosized in MySQL 5.6.8 and above (capped to 100). Requests for threads are satisfied by reusing threads taken from the cache if possible, and only when the cache is empty is a new thread created.\n\n* *Threads_created*: The number of threads created to handle connections.\n* *Threads_cached*: The number of threads in the thread cache.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -930,6 +965,12 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Tuning information",
+          "url": "https://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_thread_cache_size"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -993,7 +1034,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL线程缓存",
+      "title": "MySQL Thread Cache",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1041,7 +1082,7 @@
       "id": 385,
       "panels": [],
       "repeat": null,
-      "title": "临时对象",
+      "title": "Temporary Objects",
       "type": "row"
     },
     {
@@ -1135,7 +1176,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL临时对象",
+      "title": "MySQL Temporary Objects",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1178,7 +1219,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL Select 类型**\n\n基于索引的查询通常比全表扫描更高效。本面板展示未使用索引的 select 相关计数：\n* Select Scan：触发全表扫描的查询次数。\n* Select Range：使用范围扫描的查询次数。\n* Select Full Join：未使用索引进行连接的 JOIN 次数，通常是重大性能问题。",
+      "description": "**MySQL Select Types**\n\nAs with most relational databases, selecting based on indexes is more efficient than scanning an entire table's data. Here we see the counters for selects not done with indexes.\n\n* ***Select Scan*** is how many queries caused full table scans, in which all the data in the table had to be read and either discarded or returned.\n* ***Select Range*** is how many queries used a range scan, which means MySQL scanned all rows in a given range.\n* ***Select Full Join*** is the number of joins that are not joined on an index, this is usually a huge performance hit.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -1294,7 +1335,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL查询选择类型",
+      "title": "MySQL Select Types",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1342,7 +1383,7 @@
       "id": 386,
       "panels": [],
       "repeat": null,
-      "title": "排序",
+      "title": "Sorts",
       "type": "row"
     },
     {
@@ -1352,7 +1393,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 排序**\n\n由于查询结构或排序要求，MySQL 在返回结果前需要对行排序。例如表中顺序为 1..10 而需要倒序时必须排序。图中也显示需要扫描整表或范围才能完成的排序及无法通过索引完成的排序。",
+      "description": "**MySQL Sorts**\n\nDue to a query's structure, order, or other requirements, MySQL sorts the rows before returning them. For example, if a table is ordered 1 to 10 but you want the results reversed, MySQL then has to sort the rows to return 10 to 1.\n\nThis graph also shows when sorts had to scan a whole table or a given range of a table in order to return the results and which could not have been sorted via an index.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -1454,7 +1495,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL排序",
+      "title": "MySQL Sorts",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1497,7 +1538,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 慢查询**\n\n慢查询指执行时间超过 long_query_time 设置的查询。例如 long_query_time=3 时，耗时超过 3 秒的查询都会显示在本图。",
+      "description": "**MySQL Slow Queries**\n\nSlow queries are defined as queries being slower than the long_query_time setting. For example, if you have long_query_time set to 3, all queries that take longer than 3 seconds to complete will show on this graph.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -1556,7 +1597,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL慢查询",
+      "title": "MySQL Slow Queries",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1606,7 +1647,7 @@
       "id": 387,
       "panels": [],
       "repeat": null,
-      "title": "中断/失败",
+      "title": "Aborted",
       "type": "row"
     },
     {
@@ -1616,7 +1657,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**中断连接**\n\n某主机连接 MySQL 时若中途被打断（如凭证错误），MySQL 会在系统表中记录（5.6 起在 performance_schema 可见）。若连续失败次数达到 max_connect_errors，mysqld 认为异常并阻止该主机继续连接。需执行 `FLUSH HOSTS` 解除封锁。",
+      "description": "**Aborted Connections**\n\nWhen a given host connects to MySQL and the connection is interrupted in the middle (for example due to bad credentials), MySQL keeps that info in a system table (since 5.6 this table is exposed in performance_schema).\n\nIf the amount of failed requests without a successful connection reaches the value of max_connect_errors, mysqld assumes that something is wrong and blocks the host from further connection.\n\nTo allow connections from that host again, you need to issue the ``FLUSH HOSTS`` statement.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -1691,7 +1732,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL中断连接",
+      "title": "MySQL Aborted Connections",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1736,7 +1777,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**表锁**\n\nMySQL 会因多种原因获取不同锁。本图展示它向存储引擎请求的表级锁次数。对 InnoDB 来说多数情况实际是行锁，只有少量特定场景才是表锁。对比 Locks Immediate 与 Locks Waited 最有价值；若 Locks Waited 上升说明存在锁争用，否则 Locks Immediate 的波动属于正常。",
+      "description": "**Table Locks**\n\nMySQL takes a number of different locks for varying reasons. In this graph we see how many Table level locks MySQL has requested from the storage engine. In the case of InnoDB, many times the locks could actually be row locks as it only takes table level locks in a few specific cases.\n\nIt is most useful to compare Locks Immediate and Locks Waited. If Locks waited is rising, it means you have lock contention. Otherwise, Locks Immediate rising and falling is normal activity.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -1811,7 +1852,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL表锁",
+      "title": "MySQL Table Locks",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1859,7 +1900,7 @@
       "id": 388,
       "panels": [],
       "repeat": null,
-      "title": "网络",
+      "title": "Network",
       "type": "row"
     },
     {
@@ -1869,7 +1910,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 网络流量**\n\n展示 MySQL 产生的网络流量。Outbound 为发送数据量，Inbound 为接收数据量。",
+      "description": "**MySQL Network Traffic**\n\nHere we can see how much network traffic is generated by MySQL. Outbound is network traffic sent from MySQL and Inbound is network traffic MySQL has received.",
       "editable": true,
       "error": false,
       "fill": 6,
@@ -1944,7 +1985,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL网络流量",
+      "title": "MySQL Network Traffic",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -1987,7 +2028,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 每小时网络使用**\n\n展示 MySQL 每小时产生的网络流量，可使用柱状图对比发送与接收。",
+      "description": "**MySQL Network Usage Hourly**\n\nHere we can see how much network traffic is generated by MySQL per hour. You can use the bar graph to compare data sent by MySQL and data received by MySQL.",
       "editable": true,
       "error": false,
       "fill": 6,
@@ -2063,7 +2104,7 @@
       "timeFrom": "24h",
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL每小时网络使用",
+      "title": "MySQL Network Usage Hourly",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2111,7 +2152,7 @@
       "id": 389,
       "panels": [],
       "repeat": null,
-      "title": "内存",
+      "title": "Memory",
       "type": "row"
     },
     {
@@ -2152,6 +2193,12 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Detailed descriptions about metrics",
+          "url": "https://www.percona.com/doc/percona-monitoring-and-management/dashboard.mysql-overview.html#mysql-internal-memory-overview"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -2258,7 +2305,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL内部内存概览",
+      "title": "MySQL Internal Memory Overview",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2308,7 +2355,7 @@
       "id": 390,
       "panels": [],
       "repeat": null,
-      "title": "命令/处理器/进程",
+      "title": "Command, Handlers, Processes",
       "type": "row"
     },
     {
@@ -2318,7 +2365,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**主要命令计数**\n\nCom_{{xxx}} 变量记录每类语句的执行次数。例如 Com_delete 与 Com_update 统计 DELETE 与 UPDATE；Com_delete_multi 与 Com_update_multi 统计使用多表语法的对应语句。",
+      "description": "**Top Command Counters**\n\nThe Com_{{xxx}} statement counter variables indicate the number of times each xxx statement has been executed. There is one status variable for each type of statement. For example, Com_delete and Com_update count [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html) and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html) statements, respectively. Com_delete_multi and Com_update_multi are similar but apply to [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html) and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html) statements that use multiple-table syntax.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -2349,6 +2396,12 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Server Status Variables (Com_xxx)",
+          "url": "https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Com_xxx"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -2382,7 +2435,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "主要命令计数",
+      "title": "Top Command Counters",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2425,7 +2478,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**每小时主要命令计数**\n\n展示最近每小时内各类 Com_{{xxx}} 语句的执行次数。",
+      "description": "**Top Command Counters Hourly**\n\nThe Com_{{xxx}} statement counter variables indicate the number of times each xxx statement has been executed. There is one status variable for each type of statement. For example, Com_delete and Com_update count [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html) and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html) statements, respectively. Com_delete_multi and Com_update_multi are similar but apply to [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html) and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html) statements that use multiple-table syntax.",
       "editable": true,
       "error": false,
       "fill": 6,
@@ -2454,6 +2507,12 @@
       },
       "lines": false,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Server Status Variables (Com_xxx)",
+          "url": "https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Com_xxx"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -2486,7 +2545,7 @@
       "timeFrom": "24h",
       "timeRegions": [],
       "timeShift": null,
-      "title": "每小时主要命令计数",
+      "title": "Top Command Counters Hourly",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2529,7 +2588,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL Handlers**\n\nHandler 统计反映 MySQL 在选择、更新、插入与修改行/表/索引时的内部行为，是 MySQL 与存储引擎之间的层。\n* read_rnd_next：执行全表扫描时递增，过高代表大量全表扫描。\n* read_key：使用索引读取时递增。\n* read_next：请求“读取下一条索引项”时递增，高值表示大量索引扫描。",
+      "description": "**MySQL Handlers**\n\nHandler statistics are internal statistics on how MySQL is selecting, updating, inserting, and modifying rows, tables, and indexes.\n\nThis is in fact the layer between the Storage Engine and MySQL.\n\n* `read_rnd_next` is incremented when the server performs a full table scan and this is a counter you don't really want to see with a high value.\n* `read_key` is incremented when a read is done with an index.\n* `read_next` is incremented when the storage engine is asked to 'read the next index entry'. A high value means a lot of index scans are being done.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -2592,7 +2651,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL处理器",
+      "title": "MySQL Handlers",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2696,7 +2755,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL事务处理器",
+      "title": "MySQL Transaction Handlers",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2800,7 +2859,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "进程状态",
+      "title": "Process States",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2904,7 +2963,7 @@
       "timeFrom": "24h",
       "timeRegions": [],
       "timeShift": null,
-      "title": "每小时进程状态排行",
+      "title": "Top Process States Hourly",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -2952,7 +3011,7 @@
       "id": 391,
       "panels": [],
       "repeat": null,
-      "title": "查询缓存",
+      "title": "Query Cache",
       "type": "row"
     },
     {
@@ -2962,7 +3021,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 查询缓存内存**\n\n查询缓存存在严重可扩展性问题：一次仅允许一个线程操作，且不仅影响 SELECT，也影响 INSERT/UPDATE/DELETE。缓存越大操作越慢。在高并发环境中它很快成为性能瓶颈。MariaDB 与 AWS Aurora 做了优化，MySQL 8.0 则已移除该特性。推荐：`query_cache_type=0`，`query_cache_size=0`。要彻底消除争用需重启数据库。",
+      "description": "**MySQL Query Cache Memory**\n\nThe query cache has huge scalability problems in that only one thread can do an operation in the query cache at the same time. This serialization is true not only for SELECTs, but also for INSERT/UPDATE/DELETE.\n\nThis also means that the larger the `query_cache_size` is set to, the slower those operations become. In concurrent environments, the MySQL Query Cache quickly becomes a contention point, decreasing performance. MariaDB and AWS Aurora have done work to try and eliminate the query cache contention in their flavors of MySQL, while MySQL 8.0 has eliminated the query cache feature.\n\nThe recommended settings for most environments is to set:\n  ``query_cache_type=0``\n  ``query_cache_size=0``\n\nNote that while you can dynamically change these values, to completely remove the contention point you have to restart the database.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -3037,7 +3096,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL查询缓存内存",
+      "title": "MySQL Query Cache Memory",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3080,7 +3139,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 查询缓存活动**\n\n展示查询缓存的命中、插入、未缓存、内存裁剪及当前缓存查询数，同样受串行化与可扩展性限制。建议关闭查询缓存以避免性能问题。",
+      "description": "**MySQL Query Cache Activity**\n\nThe query cache has huge scalability problems in that only one thread can do an operation in the query cache at the same time. This serialization is true not only for SELECTs, but also for INSERT/UPDATE/DELETE.\n\nThis also means that the larger the `query_cache_size` is set to, the slower those operations become. In concurrent environments, the MySQL Query Cache quickly becomes a contention point, decreasing performance. MariaDB and AWS Aurora have done work to try and eliminate the query cache contention in their flavors of MySQL, while MySQL 8.0 has eliminated the query cache feature.\n\nThe recommended settings for most environments is to set:\n``query_cache_type=0``\n``query_cache_size=0``\n\nNote that while you can dynamically change these values, to completely remove the contention point you have to restart the database.",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -3195,7 +3254,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL查询缓存活动",
+      "title": "MySQL Query Cache Activity",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3243,7 +3302,7 @@
       "id": 392,
       "panels": [],
       "repeat": null,
-      "title": "文件与表",
+      "title": "Files and Tables",
       "type": "row"
     },
     {
@@ -3311,7 +3370,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL文件打开次数",
+      "title": "MySQL File Openings",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3433,7 +3492,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL已打开文件",
+      "title": "MySQL Open Files",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3481,7 +3540,7 @@
       "id": 393,
       "panels": [],
       "repeat": null,
-      "title": "表打开次数",
+      "title": "Table Openings",
       "type": "row"
     },
     {
@@ -3491,7 +3550,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 表打开缓存状态**\n\n建议将 table_open_cache_instances 设为与虚拟 CPU 数量大致相关；更多实例意味着缓存被拆分。MySQL 5.6+ 中 table_definition_cache 与 table_open_cache 会自动调整，一般保持默认。",
+      "description": "**MySQL Table Open Cache Status**\n\nThe recommendation is to set the `table_open_cache_instances` to a loose correlation to virtual CPUs, keeping in mind that more instances means the cache is split more times. If you have a cache set to 500 but it has 10 instances, each cache will only have 50 cached.\n\nThe `table_definition_cache` and `table_open_cache` can be left as default as they are auto-sized MySQL 5.6 and above (ie: do not set them to any value).",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -3520,6 +3579,12 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Server Status Variables (table_open_cache)",
+          "url": "http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_table_open_cache"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -3593,7 +3658,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL表打开缓存状态",
+      "title": "MySQL Table Open Cache Status",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3636,7 +3701,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 已打开表数**\n\n展示当前已打开表及缓存大小。缓存实例数与 CPU 数量相关；MySQL 5.6+ 自动调整相关缓存参数。",
+      "description": "**MySQL Open Tables**\n\nThe recommendation is to set the `table_open_cache_instances` to a loose correlation to virtual CPUs, keeping in mind that more instances means the cache is split more times. If you have a cache set to 500 but it has 10 instances, each cache will only have 50 cached.\n\nThe `table_definition_cache` and `table_open_cache` can be left as default as they are auto-sized MySQL 5.6 and above (ie: do not set them to any value).",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -3665,6 +3730,12 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Server Status Variables (table_open_cache)",
+          "url": "http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_table_open_cache"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -3710,7 +3781,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL已打开的表",
+      "title": "MySQL Open Tables",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3758,7 +3829,7 @@
       "id": 394,
       "panels": [],
       "repeat": null,
-      "title": "MySQL表定义缓存",
+      "title": "MySQL Table Definition Cache",
       "type": "row"
     },
     {
@@ -3768,7 +3839,7 @@
       "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
-      "description": "**MySQL 表定义缓存**\n\n展示打开的表定义及缓存大小，相关参数在 MySQL 5.6+ 中自动调整，通常无需手动设置。",
+      "description": "**MySQL Table Definition Cache**\n\nThe recommendation is to set the `table_open_cache_instances` to a loose correlation to virtual CPUs, keeping in mind that more instances means the cache is split more times. If you have a cache set to 500 but it has 10 instances, each cache will only have 50 cached.\n\nThe `table_definition_cache` and `table_open_cache` can be left as default as they are auto-sized MySQL 5.6 and above (ie: do not set them to any value).",
       "editable": true,
       "error": false,
       "fill": 2,
@@ -3797,6 +3868,12 @@
       },
       "lines": true,
       "linewidth": 2,
+      "links": [
+        {
+          "title": "Server Status Variables (table_open_cache)",
+          "url": "http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_table_open_cache"
+        }
+      ],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -3856,7 +3933,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "MySQL表定义缓存",
+      "title": "MySQL Table Definition Cache",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -3904,7 +3981,7 @@
       "id": 395,
       "panels": [],
       "repeat": null,
-      "title": "系统图表",
+      "title": "System Charts",
       "type": "row"
     },
     {
@@ -3989,7 +4066,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "I/O活动",
+      "title": "I/O Activity",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -4135,7 +4212,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "内存分布",
+      "title": "Memory Distribution",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -4285,7 +4362,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "CPU使用率/负载",
+      "title": "CPU Usage / Load",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -4407,7 +4484,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "磁盘延迟",
+      "title": "Disk Latency",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -4535,7 +4612,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "网络流量",
+      "title": "Network Traffic",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -4654,7 +4731,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "交换区活动",
+      "title": "Swap Activity",
       "tooltip": {
         "msResolution": false,
         "shared": true,
@@ -4835,7 +4912,7 @@
     "type": "timepicker"
   },
   "timezone": "browser",
-  "title": "Kubernetes 数据库监控面板",
+  "title": "mysql  overview",
   "uid": "46IZDeV7z",
   "version": 4
 }

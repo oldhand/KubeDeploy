@@ -124,7 +124,7 @@
         }
       ],
       "thresholds": "2000,2500",
-      "title": "当前连接数",
+      "title": "Current Connections",
       "type": "singlestat",
       "valueFontSize": "120%",
       "valueMaps": [
@@ -207,7 +207,7 @@
         }
       ],
       "thresholds": "0.1,0.2",
-      "title": "最低CPU空闲率",
+      "title": "Least CPU Idle",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -289,7 +289,7 @@
         }
       ],
       "thresholds": "0.075,0.2",
-      "title": "最小磁盘剩余率",
+      "title": "Min Space",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -372,7 +372,7 @@
         }
       ],
       "thresholds": "0.05,0.15",
-      "title": "最小内存可用率",
+      "title": "Min Mem",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -455,7 +455,7 @@
         }
       ],
       "thresholds": "2,5",
-      "title": "请求耗时",
+      "title": "Request Time",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -540,7 +540,7 @@
       ],
       "thresholds": "1,10",
       "timeFrom": null,
-      "title": "Pod重启次数",
+      "title": "Pod Restarts",
       "type": "singlestat",
       "valueFontSize": "120%",
       "valueMaps": [
@@ -607,7 +607,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "已重启Pods",
+      "title": "Pods Restarted",
       "tooltip": {
         "shared": false,
         "sort": 0,
@@ -706,7 +706,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "运行中Pod计数",
+      "title": "Pods Running Count",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -792,7 +792,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "1分钟负载",
+      "title": "Load 1m",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -879,7 +879,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "内存",
+      "title": "Memory",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -966,7 +966,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "CPU空闲平均值",
+      "title": "CPU Idle Avg",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1054,7 +1054,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "节点存储使用率",
+      "title": "Node Storage",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1141,7 +1141,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "磁盘IO秒数",
+      "title": "Disk IO s",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1228,7 +1228,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "内存占用前5的Pod",
+      "title": "Top 5 Memory Intense Pods",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1318,7 +1318,7 @@
       "thresholds": [],
       "timeFrom": null,
       "timeShift": null,
-      "title": "CPU使用最高的容器",
+      "title": "TOP CPU Containers",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1393,7 +1393,7 @@
     ]
   },
   "timezone": "",
-  "title": "Kubernetes 集群监控面板",
+  "title": "Kubernetes Cluster",
   "uid": "os6Bh8Omk",
   "version": 25,
   "gnetId": 7249,

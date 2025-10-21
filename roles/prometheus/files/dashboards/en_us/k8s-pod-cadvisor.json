@@ -130,7 +130,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "CPU使用率",
+      "title": "CPU Usage",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -180,7 +180,7 @@
       },
       "id": 11,
       "panels": [],
-      "title": "内存",
+      "title": "Memory",
       "type": "row"
     },
     {
@@ -244,7 +244,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "内存使用",
+      "title": "Memory Usage",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -344,7 +344,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "缓存内存",
+      "title": "Memory Cached",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -461,7 +461,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "接收网络流量",
+      "title": "Received Network Traffic",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -560,7 +560,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "发送网络流量",
+      "title": "Sent Network Traffic",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -610,7 +610,7 @@
       },
       "id": 19,
       "panels": [],
-      "title": "杂项",
+      "title": "Misc",
       "type": "row"
     },
     {
@@ -702,7 +702,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "容器信息",
+      "title": "Containers Info",
       "transformations": [
         {
           "id": "filterFieldsByName",
@@ -810,7 +810,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Kubernetes 容器监控面板",
+  "title": "Cadvisor exporter",
   "uid": "pMEd7m0Mz",
   "version": 1,
   "description": "Simple exporter for cadvisor only"

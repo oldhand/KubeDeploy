@@ -22,14 +22,17 @@ groups:
     rules:
       # CPU使用率过高
       - alert: HighCPUUsage
-        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 80
-        for: 10m
+        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[1m])) by (instance) * 100) > 20
+        for: 2m
+#        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 80
+#        for: 10m
         labels:
           severity: warning
           category: resource
         annotations:
           summary: "实例 {{ $labels.instance }} CPU使用率过高"
-          description: "CPU使用率已超过80%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          description: "CPU使用率已超过20%，持续2分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+#          description: "CPU使用率已超过80%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
           value: "{{ printf \"%.2f%%\" $value }}"
 
       # 内存使用率过高
@@ -123,3 +126,93 @@ groups:
           summary: "Prometheus 存储容量不足"
           description: "存储已使用超过80%（当前值：{{ printf \"%.2f%%\" $value }}），建议扩展存储或缩短保留时间"
           value: "{{ printf \"%.2f%%\" $value }}"
+
+  # 5. MySQL数据库监控（依赖mysqld_exporter）
+  - name: mysql_database
+    rules:
+      # MySQL实例不可达
+      - alert: MySQLInstanceDown
+        expr: up{job="mysqld-exporter"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} 不可达"
+          description: "mysqld-exporter无法采集{{ $labels.instance }}的指标，已持续3分钟"
+          value: "当前状态: 不可达"
+
+      # MySQL连接数过高
+      - alert: MySQLTooManyConnections
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} 连接数过高"
+          description: "连接数占比已超过80%，持续5分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          value: "{{ printf \"%.2f%%\" $value }}"
+
+      # MySQL慢查询激增
+      - alert: MySQLSlowQueriesIncreased
+        expr: rate(mysql_global_status_slow_queries[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} 慢查询激增"
+          description: "5分钟内慢查询数量超过10个/秒，持续5分钟（当前值：{{ printf \"%.2f/s\" $value }}）"
+          value: "{{ printf \"%.2f/s\" $value }}"
+
+      # MySQL查询缓存命中率低
+      - alert: MySQLQueryCacheLowHitRate
+        expr: (mysql_global_status_qcache_hits / (mysql_global_status_qcache_hits + mysql_global_status_qcache_inserts)) * 100 < 50
+        for: 10m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} 查询缓存命中率低"
+          description: "查询缓存命中率低于50%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          value: "{{ printf \"%.2f%%\" $value }}"
+
+  # 6. 关键进程监控（依赖process_exporter）
+  - name: critical_processes
+    rules:
+      # 关键进程未运行
+      - alert: CriticalProcessDown
+        expr: process_up{name=~"kube-apiserver|kube-controller-manager|kube-scheduler|prometheus-server|alertmanager|grafana"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: process
+        annotations:
+          summary: "关键进程 {{ $labels.name }} 未运行"
+          description: "{{ $labels.name }} 进程已停止超过2分钟（实例：{{ $labels.instance }}）"
+          value: "当前状态: 未运行"
+
+      # 进程CPU使用率过高
+      - alert: ProcessHighCPUUsage
+        expr: 100 * (rate(process_cpu_seconds_total{name=~"kube-apiserver|prometheus-server"}[5m]) / scalar(count(node_cpu_seconds_total{mode="idle"}))) > 70
+        for: 5m
+        labels:
+          severity: warning
+          category: process
+        annotations:
+          summary: "进程 {{ $labels.name }} CPU使用率过高"
+          description: "CPU使用率已超过70%，持续5分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          value: "{{ printf \"%.2f%%\" $value }}"
+
+      # 进程内存使用率过高
+      - alert: ProcessHighMemoryUsage
+        expr: process_resident_memory_bytes{name=~"grafana|alertmanager"} / 1024 / 1024 > 1024  # 1024MB阈值
+        for: 10m
+        labels:
+          severity: warning
+          category: process
+        annotations:
+          summary: "进程 {{ $labels.name }} 内存使用率过高"
+          description: "内存使用已超过1024MB，持续10分钟（当前值：{{ printf \"%.2f MB\" $value }}）"
+          value: "{{ printf \"%.2f MB\" $value }}"

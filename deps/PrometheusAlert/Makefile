@@ -52,7 +52,7 @@ build: all
 
 clean:
 	@echo ">> cleaning build"
-	rm  ${TARGET}
+	rm -f ${TARGET}
 
 docker:
 	@echo ">> building docker image"

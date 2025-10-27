@@ -5,31 +5,24 @@
 #######################################
 
 echo "===== 第一步：检查并准备 Docker 镜像 ====="
-# 定义SWR远程镜像地址（核心拉取源）
 SWR_ALPINE_IMAGE="swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/alpine:3.18"
 SWR_GOLANG_IMAGE="swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/golang:1.20.6-alpine3.18"
-
-# 定义本地缓存tar包路径（备用）
 ALPINE_TAR="images/alpine_3.18.tar.gz"
 GOLANG_ALPINE_TAR="images/golang_1.20.6-alpine3.18.tar.gz"
 
-# 检查Docker服务是否运行
 echo "确认Docker服务运行中..."
 if ! docker info &> /dev/null; then
     echo "错误：Docker服务未运行，请启动（如：sudo systemctl start docker）"
     exit 1
 fi
 
-# 创建images目录（若不存在，用于存放缓存）
 if [ ! -d "images" ]; then
     mkdir -p images || { echo "错误：创建images目录失败"; exit 1; }
 fi
 
-# 检查本地是否已存在SWR镜像（最高优先级）
 ALPINE_READY="false"
 GOLANG_READY="false"
 
-# 检查alpine镜像
 if docker inspect "$SWR_ALPINE_IMAGE" &> /dev/null; then
     echo "✅ 本地已存在SWR镜像：$SWR_ALPINE_IMAGE"
     ALPINE_READY="true"
@@ -37,7 +30,6 @@ else
     echo "❌ 本地未找到SWR镜像：$SWR_ALPINE_IMAGE"
 fi
 
-# 检查golang镜像
 if docker inspect "$SWR_GOLANG_IMAGE" &> /dev/null; then
     echo "✅ 本地已存在SWR镜像：$SWR_GOLANG_IMAGE"
     GOLANG_READY="true"
@@ -45,29 +37,23 @@ else
     echo "❌ 本地未找到SWR镜像：$SWR_GOLANG_IMAGE"
 fi
 
-# 处理缺失的镜像：优先用本地缓存，缓存缺失则拉取SWR远程
 if [ "$ALPINE_READY" = "false" ]; then
-    # 检查本地缓存tar包是否存在
     if [ -f "$ALPINE_TAR" ]; then
         echo "使用本地缓存tar包：$ALPINE_TAR"
-        # 解压并加载缓存
-        echo "解压alpine缓存包..."
         if ! tar -xzf "$ALPINE_TAR" -C images/; then
-            echo "错误：解压$ALPINE_TAR失败（可能文件损坏）"
+            echo "错误：解压$ALPINE_TAR失败"
             exit 1
         fi
         ALPINE_IMAGE="images/alpine_3.18.tar"
-        echo "加载alpine镜像到Docker..."
         if ! docker load -i "$ALPINE_IMAGE"; then
             echo "错误：加载$ALPINE_IMAGE失败"
             exit 1
         fi
         ALPINE_READY="true"
     else
-        # 缓存不存在，从SWR远程拉取
-        echo "本地缓存不存在，从SWR远程拉取：$SWR_ALPINE_IMAGE"
+        echo "从SWR远程拉取：$SWR_ALPINE_IMAGE"
         if ! docker pull "$SWR_ALPINE_IMAGE"; then
-            echo "错误：拉取SWR镜像$SWR_ALPINE_IMAGE失败（检查网络或仓库权限）"
+            echo "错误：拉取$SWR_ALPINE_IMAGE失败"
             exit 1
         fi
         ALPINE_READY="true"
@@ -75,34 +61,29 @@ if [ "$ALPINE_READY" = "false" ]; then
 fi
 
 if [ "$GOLANG_READY" = "false" ]; then
-    # 检查本地缓存tar包是否存在
     if [ -f "$GOLANG_ALPINE_TAR" ]; then
         echo "使用本地缓存tar包：$GOLANG_ALPINE_TAR"
-        # 解压并加载缓存
-        echo "解压golang缓存包..."
         if ! tar -xzf "$GOLANG_ALPINE_TAR" -C images/; then
-            echo "错误：解压$GOLANG_ALPINE_TAR失败（可能文件损坏）"
+            echo "错误：解压$GOLANG_ALPINE_TAR失败"
             exit 1
         fi
         GOLANG_IMAGE="images/golang_1.20.6-alpine3.18.tar"
-        echo "加载golang镜像到Docker..."
         if ! docker load -i "$GOLANG_IMAGE"; then
             echo "错误：加载$GOLANG_IMAGE失败"
             exit 1
         fi
         GOLANG_READY="true"
     else
-        # 缓存不存在，从SWR远程拉取
-        echo "本地缓存不存在，从SWR远程拉取：$SWR_GOLANG_IMAGE"
+        echo "从SWR远程拉取：$SWR_GOLANG_IMAGE"
         if ! docker pull "$SWR_GOLANG_IMAGE"; then
-            echo "错误：拉取SWR镜像$SWR_GOLANG_IMAGE失败（检查网络或仓库权限）"
+            echo "错误：拉取$SWR_GOLANG_IMAGE失败"
             exit 1
         fi
         GOLANG_READY="true"
     fi
 fi
 
-echo "Docker镜像准备完成（本地SWR/缓存/远程拉取）"
+echo "Docker镜像准备完成"
 
 
 #######################################
@@ -117,7 +98,6 @@ GO_URL="https://dl.google.com/go/${GO_TAR}"
 ALTERNATE_URL="https://mirrors.aliyun.com/golang/${GO_TAR}"
 INSTALL_DIR="/usr/local"
 
-# 检查已安装的Go版本
 if command -v go &> /dev/null; then
     installed_version=$(go version | awk '{print $3}' | sed 's/go//')
     echo "检测到已安装Go版本: $installed_version"
@@ -129,7 +109,6 @@ if command -v go &> /dev/null; then
             echo "跳过Go安装"
         else
             rm -rf "${INSTALL_DIR}/go"
-            # 下载/使用本地缓存
             if [ ! -f "./${GO_TAR}" ]; then
                 echo "下载Go ${GO_VERSION}..."
                 if ! wget -O "./${GO_TAR}" "${GO_URL}"; then
@@ -142,8 +121,6 @@ if command -v go &> /dev/null; then
             else
                 echo "使用本地缓存：${GO_TAR}"
             fi
-            # 解压
-            echo "解压安装包..."
             if ! tar -C "${INSTALL_DIR}" -xzf "./${GO_TAR}"; then
                 echo "解压失败，可能文件损坏"
                 exit 1
@@ -151,7 +128,6 @@ if command -v go &> /dev/null; then
         fi
     fi
 else
-    # 未安装Go，直接安装
     echo "未检测到Go，开始安装..."
     rm -rf "${INSTALL_DIR}/go"
     if [ ! -f "./${GO_TAR}" ]; then
@@ -166,14 +142,12 @@ else
     else
         echo "使用本地缓存：${GO_TAR}"
     fi
-    echo "解压安装包..."
     if ! tar -C "${INSTALL_DIR}" -xzf "./${GO_TAR}"; then
         echo "解压失败，可能文件损坏"
         exit 1
     fi
 fi
 
-# 配置环境变量
 if [ -n "$SUDO_USER" ]; then
     USER_HOME=$(eval echo ~${SUDO_USER})
 else
@@ -191,11 +165,9 @@ export GOPATH=\$HOME/go
 export PATH=\$PATH:\$GOROOT/bin:\$GOPATH/bin
 EOF
 fi
-# 临时加载
 export GOROOT="${INSTALL_DIR}/go"
 export PATH="$PATH:${GOROOT}/bin"
 
-# 验证Go
 if command -v go &> /dev/null && go version | grep -q "go${GO_VERSION}"; then
     go version
     echo "Go环境准备完成"
@@ -259,3 +231,44 @@ if ! make docker; then
     exit 1
 fi
 echo "镜像打包完成，可通过docker images查看"
+
+
+#######################################
+# 第五步：创建目录并保存压缩Docker镜像（优化路径格式）
+#######################################
+
+echo -e "\n===== 第五步：保存并压缩镜像 ====="
+TARGET_DIR="../../images/alert/x86_64"
+IMAGE_NAME="feiyu563/prometheus-alert:v4.9.1"
+ALERT_TAR_FILE="prometheus-alert_v4.9.1.tar"
+TAR_FILE="${TARGET_DIR}/${ALERT_TAR_FILE}"
+TAR_GZ_FILE="${ALERT_TAR_FILE}.gz"
+
+# 1. 创建目标目录
+echo "创建目录：${TARGET_DIR}"
+if ! mkdir -p "${TARGET_DIR}"; then
+    echo "错误：创建目录${TARGET_DIR}失败（检查路径权限）"
+    exit 1
+fi
+
+# 2. 检查目标镜像是否存在
+echo "检查镜像${IMAGE_NAME}是否存在..."
+if ! docker inspect "${IMAGE_NAME}" &> /dev/null; then
+    echo "错误：未找到镜像${IMAGE_NAME}，无法执行docker save"
+    exit 1
+fi
+
+# 3. 保存镜像为tar文件
+echo "保存镜像到${TAR_FILE}..."
+if ! docker save "${IMAGE_NAME}" -o "${TAR_FILE}"; then
+    echo "错误：docker save失败（检查路径写入权限）"
+    exit 1
+fi
+
+echo "压缩为${ALERT_TAR_FILE}..."
+if ! (cd "${TARGET_DIR}" && tar czvf "${TAR_GZ_FILE}" "${ALERT_TAR_FILE}"); then
+    echo "错误：tar压缩失败（检查文件是否存在）"
+    exit 1
+fi
+
+echo "全流程执行完成！"

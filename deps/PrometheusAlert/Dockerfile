@@ -16,7 +16,7 @@ RUN make build
 # -----------------------------------------------------------------------------
 FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/alpine:3.18
 
-LABEL maintainer="jikun.zhang"
+LABEL maintainer="oldhand"
 
 RUN apk update && \
     apk add --no-cache tzdata && \

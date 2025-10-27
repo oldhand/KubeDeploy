@@ -16,7 +16,7 @@ BRANCH      ?= $(shell git rev-parse --abbrev-ref HEAD)
 BUILDDATE   ?= $(shell date -I'seconds')
 BUILDUSER   ?= $(shell whoami)@$(shell hostname)
 REVISION    ?= $(shell git rev-parse HEAD)
-TAG_VERSION ?= $(shell git describe --tags --abbrev=0)
+TAG_VERSION ?= "v4.9.1"
 
 VERSION_LDFLAGS := \
 	-X main.Version=$(TAG_VERSION) \

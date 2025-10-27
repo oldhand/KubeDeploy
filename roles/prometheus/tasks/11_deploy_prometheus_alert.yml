@@ -96,7 +96,7 @@
                 operator: "Exists"
                 effect: "NoSchedule"
             containers:
-              - image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/feiyu563/prometheus-alert:v4.8.2
+              - image: feiyu563/prometheus-alert:v4.9.1
                 imagePullPolicy: Never
                 name: prometheus-alert-center
                 env:

@@ -1,0 +1,11 @@
+.idea
+doc
+example
+logo
+tests
+.gitignore
+build.sh
+build.bat
+README.MD
+dist/
+old_delete/

@@ -1,0 +1,311 @@
+{{define "main"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>告警中心</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/plugins/fontawesome-free/css/all.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="/static/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <link rel="stylesheet" href="/static/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+  <!-- flag-icon-css -->
+  <link rel="stylesheet" href="/static/plugins/flag-icon-css/css/flag-icon.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet"href="/static/dist/css/adminlte.min.css">
+</head>
+<body class="hold-transition sidebar-mini">
+<!-- Site wrapper -->
+<div class="wrapper">
+
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="/" class="brand-link">
+      <img src="/static/dist/img/logo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+      <span class="brand-text font-weight-light">告警中心</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+			   
+          <li class="nav-item">
+            <a href="/" {{if .IsIndex}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                Dashboard
+              </p>
+            </a>
+          </li>
+		  
+          <li {{if .IsTemplateMenu}}class="nav-item menu-open"{{else}}class="nav-item"{{end}}>
+            <a href="#" {{if .IsTemplateMenu}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+              <i class="nav-icon fas fa-chart-pie"></i>
+              <p>
+                模板管理
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+			
+            <ul class="nav nav-treeview">
+			
+              <li class="nav-item">
+                <a href="/template" {{if .IsTemplate}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+                  <i class="fas fa-heart nav-icon"></i>
+                  <p>自定义模版</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/markdowntest" {{if .IsMarkDownTest}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+                  <i class="far fa-image nav-icon"></i>
+                  <p>Markdown测试</p>
+                </a>
+              </li>
+			  
+            </ul>
+          </li>
+		  
+          <li {{if .IsAlertManageMenu}}class="nav-item menu-open"{{else}}class="nav-item"{{end}}>
+            <a href="#" {{if .IsAlertManageMenu}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+              <i class="nav-icon fa fa-bell"></i>
+              <p>
+                告警管理
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+			
+            <ul class="nav nav-treeview">
+			
+              <!--<li class="nav-item">
+                <a href="silences" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>告警拦截</p>
+                </a>
+              </li>-->
+			  
+              <li class="nav-item">
+                <a href="/alertrouter" {{if .IsAlertRouter}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+                  <i class="fas fa-inbox nav-icon"></i>
+                  <p>告警路由</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="/record" {{if .IsRecord}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+                  <i class="fas fa-book nav-icon"></i>
+                  <p>告警记录查询</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="/test" {{if .IsTest}}class="nav-link active"{{else}}class="nav-link"{{end}}>
+                  <i class="fas fa-bullhorn nav-icon"></i>
+                  <p>告警测试</p>
+                </a>
+              </li>
+			  
+            </ul>
+          </li>
+		  
+          <!--<li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-edit"></i>
+              <p>
+                系统默认参数设置
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+			
+            <ul class="nav nav-treeview">
+			  <li class="nav-header">Webook</li>
+              <li class="nav-item">
+                <a href="/setup/weixin" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>企业微信机器人</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>钉钉机器人</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>飞书机器人</p>
+                </a>
+              </li>
+			  
+			  <li class="nav-header">企业应用</li>
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>企业微信应用</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Telegram</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>百度Hi(如流)</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Bark(iPhone推送)</p>
+                </a>
+              </li>
+			  
+			  
+			  <li class="nav-header">Email</li>
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Email</p>
+                </a>
+              </li>
+			  
+			  <li class="nav-header">短信</li>
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>腾讯云短信</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>阿里云短信</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>华为云短信</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>百度云短信</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>七陌短信</p>
+                </a>
+              </li>
+			  
+			  <li class="nav-header">电话</li>
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>腾讯云电话</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>阿里云语音电话</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>荣联云语音电话</p>
+                </a>
+              </li>
+			  
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>七陌语音电话</p>
+                </a>
+              </li>
+			  
+            </ul>
+          </li>-->
+
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  </aside>
+{{end}}
+
+{{define "endhtml"}}
+
+  <footer class="main-footer">
+    <div class="float-right d-none d-sm-block">
+      <b>Version</b> 4.9.1
+    </div>
+    <strong>监控平台-告警中心</strong>
+  </footer>
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="/static/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/dist/js/adminlte.min.js"></script>
+<script src="/static/dist/js/marked.min.js"></script>
+<!-- ChartJS -->
+<script src="/static/plugins/chart.js/Chart.min.js"></script>
+<!-- DataTables  & Plugins -->
+<script src="/static/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/static/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/static/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/static/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="/static/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="/static/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="/static/plugins/jszip/jszip.min.js"></script>
+<script src="/static/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="/static/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="/static/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="/static/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="/static/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script src="/static/dist/js/FileSaver.js"></script>
+{{end}}
+
+{{define "jshtml"}}
+</body>
+</html>
+{{end}}

@@ -12,11 +12,11 @@ MKFILE_DIR  := $(dir $(MKFILE_PATH))
 
 DOCKER_IMAGE_NAME ?= feiyu563/prometheus-alert
 
-BRANCH      ?= $(shell git rev-parse --abbrev-ref HEAD)
+BRANCH      := "master"
 BUILDDATE   ?= $(shell date -I'seconds')
 BUILDUSER   ?= $(shell whoami)@$(shell hostname)
-REVISION    ?= $(shell git rev-parse HEAD)
-TAG_VERSION ?= "v4.9.1"
+REVISION    := "18782d145af3bd1910faf614f8a4fb56444178dc"
+TAG_VERSION := "v4.9.1"
 
 VERSION_LDFLAGS := \
 	-X main.Version=$(TAG_VERSION) \
@@ -57,7 +57,6 @@ clean:
 docker:
 	@echo ">> building docker image"
 	docker build -t "$(DOCKER_IMAGE_NAME):$(TAG_VERSION)" .
-	docker tag "$(DOCKER_IMAGE_NAME):$(TAG_VERSION)" "$(DOCKER_IMAGE_NAME):latest"
 
 docker-push:
 	@echo ">> pushing docker image"

@@ -11,6 +11,8 @@ ENV GOPROXY https://goproxy.io
 
 COPY . $GOPATH/src/github.com/feiyu563/PrometheusAlert
 
+RUN make clean
+
 RUN make build
 
 # -----------------------------------------------------------------------------
@@ -31,7 +33,9 @@ HEALTHCHECK --start-period=10s --interval=20s --timeout=3s --retries=3 \
 
 WORKDIR /app
 
-COPY PrometheusAlert .
+COPY --from=builder /go/src/github.com/feiyu563/PrometheusAlert/PrometheusAlert .
+
+RUN echo "查看 PrometheusAlert 权限：" && ls -l /app/PrometheusAlert
 
 COPY db/PrometheusAlertDB.db /opt/PrometheusAlertDB.db
 

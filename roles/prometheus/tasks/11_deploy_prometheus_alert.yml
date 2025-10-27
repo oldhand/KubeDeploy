@@ -1,0 +1,153 @@
+---
+- name: 检查镜像文件 prometheus-alert_v4.8.2.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.8.2.tar"
+  register: target_tar_stat
+  run_once: true
+
+- name: 解压镜像文件 prometheus-alert_v4.8.2.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.8.2.tar.gz -C {{ playbook_dir }}/images/alert/{{ ansible_architecture }}/
+  run_once: true  # 控制节点执行一次
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+
+- name: 复制 prometheus-alert_v4.8.2.tar 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.8.2.tar"
+    dest: "/tmp/prometheus-alert_v4.8.2.tar"
+    mode: 0644
+  when: is_worker == 1
+
+- name: 加载 prometheus-alert_v4.8.2.tar 镜像到Docker
+  shell: "docker load -i /tmp/prometheus-alert_v4.8.2.tar"
+  when: is_worker == 1
+
+
+- name: 清理 prometheus-alert 资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
+  loop:
+    - { kind: DaemonSet, name: "prometheus-alert-center" }
+    - { kind: Pod, name: "prometheus-alert-center" }
+    - { kind: ConfigMap, name: "prometheus-alert-center-conf" }
+    - { kind: Service, name: "prometheus-alert-center" }
+  failed_when: false
+  run_once: true
+
+- name: 复制 alert.conf 部署文件
+  copy:
+    src: "files/alert.conf"
+    dest: "/tmp/alert.conf"
+  run_once: true
+
+- name: 复制 alert.conf 部署文件
+  copy:
+    src: "files/alert_user.csv"
+    dest: "/tmp/user.csv"
+  run_once: true
+
+- name: 生成 prometheus-alert-center 配置文件（ConfigMap）
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: prometheus-alert-center-conf
+    namespace: prometheus
+    state: present
+    definition:
+      data:
+        app.conf: "{{ lookup('file', '/tmp/alert.conf') }}"
+        user.csv: "{{ lookup('file', '/tmp/user.csv') }}"
+  run_once: true
+
+
+
+- name: 部署 prometheus-alert-center Deployment
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        labels:
+          app: prometheus-alert-center
+          alertname: prometheus-alert-center
+        name: prometheus-alert-center
+        namespace: prometheus
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: prometheus-alert-center
+            alertname: prometheus-alert-center
+        template:
+          metadata:
+            labels:
+              app: prometheus-alert-center
+              alertname: prometheus-alert-center
+          spec:
+            tolerations:
+              # 容忍 control-plane 节点的 NoSchedule 污点
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+              # 可选：如果节点有其他污点（如 master 节点的旧标签），可一并容忍
+              - key: "node-role.kubernetes.io/master"
+                operator: "Exists"
+                effect: "NoSchedule"
+            containers:
+              - image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/feiyu563/prometheus-alert:v4.8.2
+                imagePullPolicy: Never
+                name: prometheus-alert-center
+                env:
+                  - name: TZ
+                    value: "Asia/Shanghai"
+                ports:
+                  - containerPort: 8080
+                    name: http
+                resources:
+                  limits:
+                    cpu: 200m
+                    memory: 200Mi
+                  requests:
+                    cpu: 100m
+                    memory: 100Mi
+                volumeMounts:
+                  - name: prometheus-alert-center-conf-map
+                    mountPath: /app/conf/app.conf
+                    subPath: app.conf
+                  - name: prometheus-alert-center-conf-map
+                    mountPath: /app/user.csv
+                    subPath: user.csv
+            volumes:
+              - name: prometheus-alert-center-conf-map
+                configMap:
+                  name: prometheus-alert-center-conf
+                  items:
+                    - key: app.conf
+                      path: app.conf
+                    - key: user.csv
+                      path: user.csv
+  run_once: true
+
+
+- name: 创建 prometheus-alert-center NodePort (30099) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: prometheus-alert-center
+        namespace: prometheus
+        labels:
+          app: prometheus-alert-center
+      spec:
+        selector:
+          app: prometheus-alert-center
+        ports:
+          - port: 8080
+            targetPort: 8080
+            nodePort: 30099
+        type: NodePort
+  run_once: true

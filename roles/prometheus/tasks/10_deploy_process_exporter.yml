@@ -23,7 +23,7 @@
   when: is_worker == 1
 
 
-- name: 清理 process-exporte 资源
+- name: 清理 process-exporter 资源
   ansible.builtin.shell: |
     kubectl get {{ item.kind }} -n prometheus --no-headers -o custom-columns=":metadata.name" \
     | grep -E "^{{ item.name }}" \

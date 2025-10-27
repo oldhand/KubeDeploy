@@ -10,3 +10,4 @@
 - include_tasks: 08_deploy_alertmanager.yml
 - include_tasks: 09_deploy_mysql_exporter.yml
 - include_tasks: 10_deploy_process_exporter.yml
+- include_tasks: 11_deploy_prometheus_alert.yml

@@ -363,17 +363,30 @@ func SendMessageR(message Prometheus, rwxurl, rddurl, rfsurl, rphone, remail, rg
 		// 消息入库
 		//AtTime, _ := time.ParseInLocation("2006-01-02 15:04:05", At, time.Local)
 		//EtTime, _ := time.ParseInLocation("2006-01-02 15:04:05", Et, time.Local)
-		if Record == "1" && models.GetRecordExist(RMessage.Labels.Alertname, RMessage.Labels.Level, RMessage.Labels.Instance, RMessage.Labels.Job, At, Et, RMessage.Annotations.Summary, RMessage.Annotations.Description, RMessage.Status) {
-			models.AddAlertRecord(RMessage.Labels.Alertname,
-				RMessage.Labels.Level,
-				RMessage.Labels.Instance,
-				RMessage.Labels.Job,
-				At,
-				Et,
-				RMessage.Annotations.Summary,
-				RMessage.Annotations.Description,
-				RMessage.Status)
-		}
+
+		logs.Info("是否开启告警记录: %s", Record)
+// 		if Record == "1" && models.GetRecordExist(RMessage.Labels.Alertname, RMessage.Labels.Level, RMessage.Labels.Instance, RMessage.Labels.Job, At, Et, RMessage.Annotations.Summary, RMessage.Annotations.Description, RMessage.Status) {
+// 			models.AddAlertRecord(RMessage.Labels.Alertname,
+// 				RMessage.Labels.Level,
+// 				RMessage.Labels.Instance,
+// 				RMessage.Labels.Job,
+// 				At,
+// 				Et,
+// 				RMessage.Annotations.Summary,
+// 				RMessage.Annotations.Description,
+// 				RMessage.Status)
+// 		}
+        if Record == "1" {
+            models.AddAlertRecord(RMessage.Labels.Alertname,
+                RMessage.Labels.Level,
+                RMessage.Labels.Instance,
+                RMessage.Labels.Job,
+                At,
+                Et,
+                RMessage.Annotations.Summary,
+                RMessage.Annotations.Description,
+                RMessage.Status)
+        }
 
 		// 告警写入ES
 		if alertToES == "1" {

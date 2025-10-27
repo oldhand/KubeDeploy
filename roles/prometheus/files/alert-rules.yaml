@@ -29,8 +29,7 @@ groups:
           category: resource
         annotations:
           summary: "实例 {{ $labels.instance }} CPU使用率过高"
-          description: "CPU使用率已超过20%，持续2分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
-#          description: "CPU使用率已超过80%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          description: "CPU使用率已超过80%，持续5分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
           value: "{{ printf \"%.2f%%\" $value }}"
 
       # 内存使用率过高

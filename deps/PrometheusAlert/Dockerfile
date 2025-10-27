@@ -31,7 +31,7 @@ HEALTHCHECK --start-period=10s --interval=20s --timeout=3s --retries=3 \
 
 WORKDIR /app
 
-COPY --from=builder /go/src/github.com/feiyu563/PrometheusAlert/PrometheusAlert .
+COPY PrometheusAlert .
 
 COPY db/PrometheusAlertDB.db /opt/PrometheusAlertDB.db
 

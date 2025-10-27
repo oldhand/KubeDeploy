@@ -1,25 +1,25 @@
 ---
-- name: 检查镜像文件 prometheus-alert_v4.8.2.tar 是否存在
+- name: 检查镜像文件 prometheus-alert_v4.9.1.tar 是否存在
   stat:
-    path: "{{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.8.2.tar"
+    path: "{{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.9.1.tar"
   register: target_tar_stat
   run_once: true
 
-- name: 解压镜像文件 prometheus-alert_v4.8.2.tar.gz
+- name: 解压镜像文件 prometheus-alert_v4.9.1.tar.gz
   shell: |
-    tar xzvf {{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.8.2.tar.gz -C {{ playbook_dir }}/images/alert/{{ ansible_architecture }}/
+    tar xzvf {{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.9.1.tar.gz -C {{ playbook_dir }}/images/alert/{{ ansible_architecture }}/
   run_once: true  # 控制节点执行一次
   when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
 
-- name: 复制 prometheus-alert_v4.8.2.tar 镜像文件到临时目录
+- name: 复制 prometheus-alert_v4.9.1.tar 镜像文件到临时目录
   copy:
-    src: "{{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.8.2.tar"
-    dest: "/tmp/prometheus-alert_v4.8.2.tar"
+    src: "{{ playbook_dir }}/images/alert/{{ ansible_architecture }}/prometheus-alert_v4.9.1.tar"
+    dest: "/tmp/prometheus-alert_v4.9.1.tar"
     mode: 0644
   when: is_worker == 1
 
-- name: 加载 prometheus-alert_v4.8.2.tar 镜像到Docker
-  shell: "docker load -i /tmp/prometheus-alert_v4.8.2.tar"
+- name: 加载 prometheus-alert_v4.9.1.tar 镜像到Docker
+  shell: "docker load -i /tmp/prometheus-alert_v4.9.1.tar"
   when: is_worker == 1
 
 

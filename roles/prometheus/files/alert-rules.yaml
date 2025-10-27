@@ -22,10 +22,8 @@ groups:
     rules:
       # CPU使用率过高
       - alert: HighCPUUsage
-        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[1m])) by (instance) * 100) > 20
-        for: 2m
-#        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 80
-#        for: 10m
+        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[1m])) by (instance) * 100) > 80
+        for: 5m
         labels:
           severity: warning
           category: resource
@@ -130,89 +128,195 @@ groups:
   # 5. MySQL数据库监控（依赖mysqld_exporter）
   - name: mysql_database
     rules:
-      # MySQL实例不可达
-      - alert: MySQLInstanceDown
-        expr: up{job="mysqld-exporter"} == 0
+      # InnoDB当前行锁等待告警
+      - alert: MySQLInnoDBRowLockWait
+        expr: mysql_global_status_innodb_row_lock_current_waits > 0
         for: 3m
         labels:
-          severity: critical
+          severity: warning
           category: database
         annotations:
-          summary: "MySQL实例 {{ $labels.instance }} 不可达"
-          description: "mysqld-exporter无法采集{{ $labels.instance }}的指标，已持续3分钟"
-          value: "当前状态: 不可达"
+          summary: "MySQL实例 {{ $labels.instance }} 存在InnoDB行锁等待"
+          description: "InnoDB当前行锁等待数大于0，已持续3分钟，可能导致事务阻塞（当前等待数：{{ $value }}）"
+          value: "当前行锁等待数: {{ $value }}"
 
-      # MySQL连接数过高
-      - alert: MySQLTooManyConnections
-        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 80
-        for: 5m
+      # MySQL Exporter采集器失败告警
+      - alert: MySQLExporterCollectorFailed
+        expr: mysql_exporter_collector_success == 0
+        for: 2m
         labels:
           severity: warning
           category: database
         annotations:
-          summary: "MySQL实例 {{ $labels.instance }} 连接数过高"
-          description: "连接数占比已超过80%，持续5分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
-          value: "{{ printf \"%.2f%%\" $value }}"
+          summary: "MySQL实例 {{ $labels.instance }} 采集器执行失败"
+          description: "采集器 {{ $labels.collector }} 执行失败，已持续2分钟，可能导致监控数据缺失"
+          value: "失败采集器: {{ $labels.collector }}"
 
-      # MySQL慢查询激增
-      - alert: MySQLSlowQueriesIncreased
-        expr: rate(mysql_global_status_slow_queries[5m]) > 10
-        for: 5m
+      # MySQL失败连接数激增告警
+      - alert: MySQLAbortedConnectsSurge
+        expr: rate(mysql_global_status_aborted_connects[5m]) > 5
+        for: 3m
         labels:
           severity: warning
           category: database
         annotations:
-          summary: "MySQL实例 {{ $labels.instance }} 慢查询激增"
-          description: "5分钟内慢查询数量超过10个/秒，持续5分钟（当前值：{{ printf \"%.2f/s\" $value }}）"
-          value: "{{ printf \"%.2f/s\" $value }}"
+          summary: "MySQL实例 {{ $labels.instance }} 失败连接数激增"
+          description: "5分钟内失败连接增长率超过5个/秒，已持续3分钟（当前速率：{{ printf \"%.2f/s\" $value }}）"
+          value: "失败连接增长率: {{ printf \"%.2f/s\" $value }}"
 
-      # MySQL查询缓存命中率低
-      - alert: MySQLQueryCacheLowHitRate
-        expr: (mysql_global_status_qcache_hits / (mysql_global_status_qcache_hits + mysql_global_status_qcache_inserts)) * 100 < 50
-        for: 10m
-        labels:
-          severity: warning
-          category: database
-        annotations:
-          summary: "MySQL实例 {{ $labels.instance }} 查询缓存命中率低"
-          description: "查询缓存命中率低于50%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
-          value: "{{ printf \"%.2f%%\" $value }}"
-
-  # 6. 关键进程监控（依赖process_exporter）
-  - name: critical_processes
-    rules:
-      # 关键进程未运行
-      - alert: CriticalProcessDown
-        expr: process_up{name=~"kube-apiserver|kube-controller-manager|kube-scheduler|prometheus-server|alertmanager|grafana"} == 0
+      # InnoDB Buffer Pool无空闲页告警
+      - alert: MySQLInnoDBCacheWaitFree
+        expr: mysql_global_status_innodb_buffer_pool_wait_free > 0
         for: 2m
         labels:
           severity: critical
-          category: process
+          category: database
         annotations:
-          summary: "关键进程 {{ $labels.name }} 未运行"
-          description: "{{ $labels.name }} 进程已停止超过2分钟（实例：{{ $labels.instance }}）"
-          value: "当前状态: 未运行"
+          summary: "MySQL实例 {{ $labels.instance }} InnoDB Buffer Pool资源不足"
+          description: "Buffer Pool无空闲页，需等待脏页刷盘，已持续2分钟（等待次数：{{ $value }}），会导致IO性能下降"
+          value: "Buffer Pool等待空闲页次数: {{ $value }}"
 
-      # 进程CPU使用率过高
-      - alert: ProcessHighCPUUsage
-        expr: 100 * (rate(process_cpu_seconds_total{name=~"kube-apiserver|prometheus-server"}[5m]) / scalar(count(node_cpu_seconds_total{mode="idle"}))) > 70
+      # MySQL表锁等待告警
+      - alert: MySQLTableLockWaited
+        expr: increase(mysql_global_status_table_locks_waited[5m]) > 0
+        for: 3m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} 存在表锁等待"
+          description: "5分钟内新增表锁等待，已持续3分钟（新增等待次数：{{ printf \"%.0f\" $value }}），表锁会阻塞并发读写"
+          value: "5分钟新增表锁等待次数: {{ printf \"%.0f\" $value }}"
+
+      # MySQL连接错误（peer_address类型）告警
+      - alert: MySQLConnectionPeerError
+        expr: rate(mysql_global_status_connection_errors_total{error="peer_address"}[5m]) > 2
+        for: 3m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} peer_address连接错误激增"
+          description: "5分钟内peer_address类型连接错误超过2个/秒，已持续3分钟（当前速率：{{ printf \"%.2f/s\" $value }}）"
+          value: "peer_address错误增长率: {{ printf \"%.2f/s\" $value }}"
+
+      # InnoDB日志写入等待告警
+      - alert: MySQLInnoDBLogWait
+        expr: mysql_global_status_innodb_log_waits > 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "MySQL实例 {{ $labels.instance }} InnoDB日志写入等待"
+          description: "InnoDB日志等待数大于0，已持续2分钟（等待次数：{{ $value }}），可能因日志缓冲区不足导致事务延迟"
+          value: "InnoDB日志等待次数: {{ $value }}"
+
+
+  # 6. 关键进程监控（依赖process_exporter）
+  - name: named-process-alerts
+    rules:
+      # 1. CPU使用率过高
+      - alert: ProcessGroupCpuHighUsage
+        expr: |
+          sum(rate(namedprocess_namegroup_cpu_seconds_total{mode=~"user|system"}[5m])) by (groupname) > 0.8
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.groupname }} CPU使用率过高"
+          # 修复：移除注解中的rate函数，改用$value展示计算结果（expr已计算rate）
+          description: "5分钟内CPU平均使用率{{ $value | humanizePercentage }}，已超过80%阈值。建议检查进程是否有异常计算逻辑"
+          suggestion: "通过`kubectl top pod -n <命名空间>`查看实时CPU消耗，排查是否有死循环或频繁GC"
+
+      # 2. 物理内存使用率过高
+      - alert: ProcessGroupMemoryHighUsage
+        expr: |
+          (namedprocess_namegroup_memory_bytes{memtype="resident"} / on() node_memory_Available_bytes * 100 > 90) 
+          or 
+          (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"kube-apiserver|prometheus-server"} > 1e9)
         for: 5m
         labels:
-          severity: warning
-          category: process
+          severity: critical
         annotations:
-          summary: "进程 {{ $labels.name }} CPU使用率过高"
-          description: "CPU使用率已超过70%，持续5分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
-          value: "{{ printf \"%.2f%%\" $value }}"
+          summary: "{{ $labels.groupname }} 物理内存使用率过高"
+          description: "当前物理内存使用{{ $value | humanize }}字节，占节点可用内存比例过高，已接近系统上限"
+          suggestion: "检查是否存在内存泄漏（如`kubectl exec <pod名> -n <命名空间> -- go tool pprof -inuse_space <进程PID>`）"
 
-      # 进程内存使用率过高
-      - alert: ProcessHighMemoryUsage
-        expr: process_resident_memory_bytes{name=~"grafana|alertmanager"} / 1024 / 1024 > 1024  # 1024MB阈值
-        for: 10m
+
+      # 3. 线程数突增
+      - alert: ProcessGroupThreadSurge
+        expr:
+          namedprocess_namegroup_num_threads > 50
+        for: 2m
         labels:
           severity: warning
-          category: process
         annotations:
-          summary: "进程 {{ $labels.name }} 内存使用率过高"
-          description: "内存使用已超过1024MB，持续10分钟（当前值：{{ printf \"%.2f MB\" $value }}）"
-          value: "{{ printf \"%.2f MB\" $value }}"
+          summary: "{{ $labels.groupname }} 线程数异常激增"
+          description: "当前线程数{{ $value }}，远超正常范围（正常≤26），可能存在线程泄漏"
+          suggestion: "通过`kubectl exec <pod名> -n <命名空间> -- pstack <进程PID>`查看线程栈"
+
+      # 4. 文件描述符接近上限
+      - alert: ProcessGroupFdNearLimit
+        expr: |
+          namedprocess_namegroup_open_filedesc / process_max_fds > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.groupname }} 文件描述符即将耗尽"
+          # 修复：移除错误的函数调用，改用指标标签和$value展示
+          description: "当前打开文件数{{ $value | humanize }}，占最大限制的50%以上，可能导致新连接无法创建"
+          suggestion: "通过`kubectl exec <pod名> -n <命名空间> -- lsof -p <进程PID>`查看打开的文件句柄"
+
+      # 5. 非自愿上下文切换激增
+      - alert: ProcessGroupNonVoluntaryCtxSwitchSurge
+        expr: |
+          rate(namedprocess_namegroup_context_switches_total{ctxswitchtype="nonvoluntary"}[5m]) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.groupname }} 非自愿上下文切换激增"
+          description: "5分钟内非自愿切换速率{{ $value | humanize }}次/秒，CPU竞争激烈"
+          suggestion: "检查节点是否有其他高CPU进程（如`kubectl top node`）"
+
+      # 6. 主要页面错误增加
+      - alert: ProcessGroupMajorPageFaultsIncreased
+        expr: |
+          rate(namedprocess_namegroup_major_page_faults_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.groupname }} 主要页面错误新增"
+          description: "5分钟内新增{{ $value | humanize }}次主要页面错误，物理内存不足"
+          suggestion: "增加节点内存或限制进程内存（如设置Pod的resources.limits.memory）"
+
+      # 7. 进程数异常
+      - alert: ProcessGroupAbnormalNumProcs
+        expr: |
+          (namedprocess_namegroup_num_procs{groupname=~"alertmanager|kube-apiserver|kube-controller-manager|prometheus-server"} != 1)
+          or
+          (namedprocess_namegroup_num_procs{groupname="kube-scheduler"} != 2)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.groupname }} 进程数异常"
+          # 修复：将单引号改为双引号（Go模板中字符串需用双引号）
+          description: "当前进程数{{ $value }}，预期为{{ if eq $labels.groupname \"kube-scheduler\" }}2{{ else }}1{{ end }}，可能进程崩溃或多实例冲突"
+          suggestion: "查看进程日志：`kubectl logs <pod名> -n <命名空间>`"
+
+      # 8. 进程未运行
+      - alert: ProcessGroupNotRunning
+        expr: |
+          namedprocess_namegroup_num_procs == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.groupname }} 进程未运行"
+          description: "当前进程数为0，服务已中断，需立即重启"
+          suggestion: "重启Pod：`kubectl delete pod <pod名> -n <命名空间>`（依赖Deployment自动重建）"
+

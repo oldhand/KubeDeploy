@@ -22,11 +22,11 @@ def main():
     try:
         # 获取CPU核心数（决定启动多少个进程）
         core_num = cpu_count()
-        print(f"检测到CPU核心数：{core_num}，开始控制总体CPU使用率在50%左右（按Ctrl+C停止）...")
+        print(f"检测到CPU核心数：{core_num}，开始控制总体CPU使用率在80%左右（按Ctrl+C停止）...")
 
         # 工作与休息时间比例1:1（单个核心理论使用率50%）
-        work_time = 0.5  # 计算时长（秒）
-        rest_time = 0.5  # 休息时长（秒）
+        work_time = 0.85  # 计算时长（秒）
+        rest_time = 0.15  # 休息时长（秒）
 
         # 为每个核心启动一个进程
         processes = []

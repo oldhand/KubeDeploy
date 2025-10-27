@@ -56,6 +56,12 @@
     dest: "/tmp/prometheus-deploy.yaml"
   run_once: true
 
+- name: 清理 /data/prometheus 下的所有文件和子目录
+  ansible.builtin.file:
+    path: /data/prometheus
+    state: absent
+  run_once: true
+
 - name: 创建 Prometheus 存储目录(/data/prometheus)
   ansible.builtin.file:
     path: /data/prometheus
@@ -63,6 +69,7 @@
     mode: '0777'
     recurse: yes
   run_once: true
+
 
 - name: 部署 Prometheus
   kubernetes.core.k8s:

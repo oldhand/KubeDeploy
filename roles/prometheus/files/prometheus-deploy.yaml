@@ -77,7 +77,12 @@ data:
           regex: ([^:]+)(?::\d+)?;(\d+)
           replacement: $1:$2
           target_label: __address__
-
+        - source_labels: [__address__]
+          action: labelmap
+          regex: __meta_kubernetes_pod_node_name=(.+)
+          replacement: $1
+          target_label: nodename
+    
       - job_name: 'kube-state-metrics'
         kubernetes_sd_configs:
         - role: pod

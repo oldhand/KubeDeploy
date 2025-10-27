@@ -19,6 +19,14 @@
             isDefault: true
   run_once: true
 
+
+- name: 清理 /data/grafana 下的所有文件和子目录
+  ansible.builtin.file:
+    path: /data/grafana
+    state: absent
+  run_once: true
+
+
 - name: 创建 Grafana 存储目录(/data/grafana)
   ansible.builtin.file:
     path: /data/grafana
@@ -26,6 +34,7 @@
     mode: '0777'
     recurse: yes
   run_once: true
+
 
 - name: 创建Grafana存储类
   kubernetes.core.k8s:

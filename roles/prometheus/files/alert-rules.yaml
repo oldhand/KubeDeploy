@@ -72,14 +72,14 @@ groups:
 
       - alert: HighNetworkTraffic
         # 假设监控网卡流量（字节/秒），转换为MB/秒（除以1024^2 = 1048576）
-        expr: (node_network_transmit_bytes_total{device!~"lo"} / 1048576) > 50  # 假设阈值10MB/s
-        for: 2m
+        expr: (node_network_transmit_bytes_total{device!~"lo"} / 1048576) > 5  # 假设阈值5MB/s
+        for: 5m
         labels:
           severity: warning
           category: network
         annotations:
           summary: "实例 {{ $labels.instance }} 网络流量过高"
-          description: "网络发送流量已超过10MB/s，持续2分钟（当前值：{{ printf \"%.2f MB/s\" $value }}）"
+          description: "网络发送流量已超过5MB/s，持续5分钟（当前值：{{ printf \"%.2f MB/s\" $value }}）"
           value: "{{ printf \"%.2f MB/s\" $value }}"
 
 

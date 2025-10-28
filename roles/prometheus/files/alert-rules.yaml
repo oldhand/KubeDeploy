@@ -35,51 +35,51 @@ groups:
       # 内存使用率过高
       - alert: HighMemoryUsage
         expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
-        for: 10m
+        for: 5m
         labels:
           severity: warning
           category: resource
         annotations:
           summary: "实例 {{ $labels.instance }} 内存使用率过高"
-          description: "内存使用率已超过85%，持续10分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          description: "内存使用率已超过85%，持续5分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
           value: "{{ printf \"%.2f%%\" $value }}"
 
       # 根分区磁盘使用率过高
       - alert: HighRootDiskUsage
         expr: 100 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100) > 85
-        for: 15m
+        for: 2m
         labels:
           severity: warning
           category: resource
         annotations:
           summary: "实例 {{ $labels.instance }} 根分区磁盘使用率过高"
-          description: "根分区使用率已超过85%，持续15分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
+          description: "根分区使用率已超过85%，持续2分钟（当前值：{{ printf \"%.2f%%\" $value }}）"
           value: "{{ printf \"%.2f%%\" $value }}"
 
       # 根分区剩余空间不足（修正除法空格）
       - alert: LowRootDiskSpace
         # expr中提前转换单位：字节 → GB（除以1024^3），判断是否小于10GB
         expr: (node_filesystem_avail_bytes{mountpoint="/"} / 1073741824) < 10
-        for: 5m
+        for: 2m
         labels:
           severity: critical
           category: resource
         annotations:
           summary: "实例 {{ $labels.instance }} 根分区剩余空间不足"
-          description: "根分区剩余空间已低于10GB，持续5分钟（当前值：{{ printf \"%.2f GB\" $value }}）"
+          description: "根分区剩余空间已低于10GB，持续2分钟（当前值：{{ printf \"%.2f GB\" $value }}）"
           value: "{{ printf \"%.2f GB\" $value }}"
 
 
       - alert: HighNetworkTraffic
         # 假设监控网卡流量（字节/秒），转换为MB/秒（除以1024^2 = 1048576）
-        expr: (node_network_transmit_bytes_total{device!~"lo"} / 1048576) > 100  # 假设阈值100MB/s
-        for: 5m
+        expr: (node_network_transmit_bytes_total{device!~"lo"} / 1048576) > 50  # 假设阈值50MB/s
+        for: 2m
         labels:
           severity: warning
           category: network
         annotations:
           summary: "实例 {{ $labels.instance }} 网络流量过高"
-          description: "网络发送流量已超过100MB/s，持续5分钟（当前值：{{ printf \"%.2f MB/s\" $value }}）"
+          description: "网络发送流量已超过50MB/s，持续2分钟（当前值：{{ printf \"%.2f MB/s\" $value }}）"
           value: "{{ printf \"%.2f MB/s\" $value }}"
 
 

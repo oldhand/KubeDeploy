@@ -6,6 +6,7 @@
     | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n prometheus --ignore-not-found
   loop:
     - { kind: Deployment, name: "prometheus" }
+    - { kind: Deployment, name: "kube-state-metrics" }
     - { kind: StatefulSet, name: "prometheus" }
     - { kind: ReplicaSet, name: "prometheus" }
     - { kind: DaemonSet, name: "prometheus" }
@@ -13,6 +14,8 @@
     - { kind: DaemonSet, name: "kube-state-metrics" }
     - { kind: Job, name: "prometheus" }
     - { kind: Pod, name: "prometheus" }
+    - { kind: Pod, name: "node-exporter" }
+    - { kind: Pod, name: "kube-state-metrics" }
     - { kind: Service, name: "prometheus" }
     - { kind: ConfigMap, name: "prometheus-config" }
     - { kind: ConfigMap, name: "prometheus-alert-rules" }

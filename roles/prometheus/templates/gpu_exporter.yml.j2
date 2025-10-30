@@ -39,6 +39,7 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
+              nvidia.com/gpu: 1
           volumeMounts:
             - name: host-dev
               mountPath: /dev
@@ -48,6 +49,12 @@ spec:
               readOnly: true
             - name: libnvidia-ml-1
               mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
+              readOnly: true
+            - name: libnvidia-nvvm
+              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so
+              readOnly: true
+            - name: libnvidia-nvvm-4
+              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4
               readOnly: true
             - name: nvidia-smi
               mountPath: /usr/bin/nvidia-smi
@@ -64,6 +71,14 @@ spec:
         - name: libnvidia-ml-1
           hostPath:
             path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1{% else %}/usr/lib64/libnvidia-ml.so.1{% endif %}"
+            type: File
+        - name: libnvidia-nvvm
+          hostPath:
+            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so{% else %}/usr/lib64/libnvidia-nvvm.so{% endif %}"
+            type: File
+        - name: libnvidia-nvvm-4
+          hostPath:
+            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4{% else %}/usr/lib64/libnvidia-nvvm.so.4{% endif %}"
             type: File
         - name: nvidia-smi
           hostPath:

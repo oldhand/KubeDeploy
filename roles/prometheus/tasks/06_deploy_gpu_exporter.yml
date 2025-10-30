@@ -71,8 +71,7 @@
   template:
     src: gpu_exporter.yml.j2
     dest: /tmp/deploy_gpu_exporter.yml
-    mode: '0644'
-  run_once: true
+    mode: '0644' 
 
 - name: 部署 nvidia_gpu_exporter DaemonSet
   kubernetes.core.k8s:

@@ -67,6 +67,20 @@
   failed_when: false
   run_once: true
 
+- name: 定义需要挂载的 libnvidia 文件列表 (Ubuntu)
+  ansible.builtin.set_fact:
+    libnvidia_files:
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
+  when: ansible_distribution == "Ubuntu"
+
+- name: 定义需要挂载的 libnvidia 文件列表 (CentOS)
+  ansible.builtin.set_fact:
+    libnvidia_files:
+      - /usr/lib64//libnvidia-ml.so
+      - /usr/lib64/libnvidia-ml.so.1
+  when: ansible_distribution in ["OpenEuler", "CentOS"]
+
 - name: 生成 nvidia_gpu_exporter 部署文件
   template:
     src: gpu_exporter.yml.j2

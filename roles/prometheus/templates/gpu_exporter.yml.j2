@@ -12,7 +12,7 @@ spec:
       labels:
         app: nvidia-gpu-exporter
     spec:
-      nodeSelector: # 只在有GPU标签的节点运行
+      nodeSelector:  # 仅在有GPU的节点运行
         nvidia.com/gpu: "true"
       restartPolicy: Always
       tolerations:
@@ -22,12 +22,14 @@ spec:
         - key: "node-role.kubernetes.io/master"
           operator: "Exists"
           effect: "NoSchedule"
-      securityContext:
-        runAsUser: 0
       containers:
         - name: nvidia-gpu-exporter
           image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/utkuozdemir/nvidia_gpu_exporter:1.3.2
+#          image: nvidia_gpu_exporter:1.4.1
           imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+            runAsUser: 0
           ports:
             - containerPort: 9835
               name: metrics
@@ -43,57 +45,26 @@ spec:
             - name: host-dev
               mountPath: /dev
               readOnly: false
-            - name: libnvidia-ml
-              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
-              readOnly: true
-            - name: libnvidia-ml-1
-              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
-              readOnly: true
-            - name: libnvidia-nvvm
-              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so
-              readOnly: true
-            - name: libnvidia-nvvm-4
-              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4
-              readOnly: true
-            - name: libnvidia-cfg
-              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-cfg.so
-              readOnly: true
-            - name: libnvidia-cfg-1
-              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-cfg.so.1
-              readOnly: true
             - name: nvidia-smi
               mountPath: /usr/bin/nvidia-smi
               readOnly: true
+{% for file in libnvidia_files %}
+            - name: "libnvidia-{{ file | basename | regex_replace('[^\w-]', '-') }}"
+              mountPath: "/usr/lib/x86_64-linux-gnu/{{ file | basename }}"
+              readOnly: true
+{% endfor %}
       volumes:
         - name: host-dev
           hostPath:
             path: /dev
             type: Directory
-        - name: libnvidia-ml
-          hostPath:
-            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-ml.so{% else %}/usr/lib64/libnvidia-ml.so{% endif %}"
-            type: File
-        - name: libnvidia-ml-1
-          hostPath:
-            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1{% else %}/usr/lib64/libnvidia-ml.so.1{% endif %}"
-            type: File
-        - name: libnvidia-nvvm
-          hostPath:
-            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so{% else %}/usr/lib64/libnvidia-nvvm.so{% endif %}"
-            type: File
-        - name: libnvidia-nvvm-4
-          hostPath:
-            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4{% else %}/usr/lib64/libnvidia-nvvm.so.4{% endif %}"
-            type: File
-        - name: libnvidia-cfg
-          hostPath:
-            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-cfg.so{% else %}/usr/lib64/libnvidia-cfg.so{% endif %}"
-            type: File
-        - name: libnvidia-cfg-1
-          hostPath:
-            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-cfg.so.1{% else %}/usr/lib64/libnvidia-cfg.so.1{% endif %}"
-            type: File
         - name: nvidia-smi
           hostPath:
             path: /usr/bin/nvidia-smi
             type: File
+{% for file in libnvidia_files %}
+        - name: "libnvidia-{{ file | basename | regex_replace('[^\w-]', '-') }}"
+          hostPath:
+            path: "{{ file }}"
+            type: File
+{% endfor %}

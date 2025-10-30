@@ -55,6 +55,12 @@ spec:
             - name: libnvidia-nvvm-4
               mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4
               readOnly: true
+            - name: libnvidia-cfg
+              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-cfg.so
+              readOnly: true
+            - name: libnvidia-cfg-1
+              mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-cfg.so.1
+              readOnly: true
             - name: nvidia-smi
               mountPath: /usr/bin/nvidia-smi
               readOnly: true
@@ -78,6 +84,14 @@ spec:
         - name: libnvidia-nvvm-4
           hostPath:
             path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4{% else %}/usr/lib64/libnvidia-nvvm.so.4{% endif %}"
+            type: File
+        - name: libnvidia-cfg
+          hostPath:
+            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-cfg.so{% else %}/usr/lib64/libnvidia-cfg.so{% endif %}"
+            type: File
+        - name: libnvidia-cfg-1
+          hostPath:
+            path: "{% if ansible_distribution == 'Ubuntu' %}/usr/lib/x86_64-linux-gnu/libnvidia-cfg.so.1{% else %}/usr/lib64/libnvidia-cfg.so.1{% endif %}"
             type: File
         - name: nvidia-smi
           hostPath:

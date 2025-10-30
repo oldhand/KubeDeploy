@@ -67,69 +67,17 @@
   failed_when: false
   run_once: true
 
+- name: 生成 nvidia_gpu_exporter 部署文件
+  template:
+    src: gpu_exporter.yml.j2
+    dest: /tmp/deploy_gpu_exporter.yml
+    mode: '0644'
+  run_once: true
+
 - name: 部署 nvidia_gpu_exporter DaemonSet
   kubernetes.core.k8s:
+    src: "/tmp/deploy_gpu_exporter.yml"
     state: present
-    definition:
-      apiVersion: apps/v1
-      kind: DaemonSet
-      metadata:
-        name: nvidia-gpu-exporter
-        namespace: prometheus
-      spec:
-        selector:
-          matchLabels:
-            app: nvidia-gpu-exporter
-        template:
-          metadata:
-            labels:
-              app: nvidia-gpu-exporter
-          spec:
-            nodeSelector: # 只在有GPU标签的节点运行
-              nvidia.com/gpu: "true"
-            tolerations:
-              # 容忍 control-plane 节点的 NoSchedule 污点
-              - key: "node-role.kubernetes.io/control-plane"
-                operator: "Exists"
-                effect: "NoSchedule"
-              # 可选：如果节点有其他污点（如 master 节点的旧标签），可一并容忍
-              - key: "node-role.kubernetes.io/master"
-                operator: "Exists"
-                effect: "NoSchedule"
-            securityContext:
-              runAsUser: 0  # 运行在root用户（避免权限不足）
-            containers:
-              - name: nvidia-gpu-exporter
-                image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/utkuozdemir/nvidia_gpu_exporter:1.3.2
-                imagePullPolicy: IfNotPresent
-                ports:
-                  - containerPort: 9835  # 默认 metrics 端口
-                    name: metrics
-                    protocol: TCP
-                resources:
-                  requests:
-                    cpu: 100m
-                    memory: 128Mi
-                  limits:
-                    cpu: 500m
-                    memory: 256Mi
-                    nvidia.com/gpu: 1
-                volumeMounts:
-                  - name: nvidia-devices
-                    mountPath: /dev
-                    readOnly: false
-                  - name: nvidia-smi
-                    mountPath: /usr/bin/nvidia-smi
-                    readOnly: true
-            volumes:
-              - name: nvidia-devices
-                hostPath:
-                  path: /dev
-                  type: Directory
-              - name: nvidia-smi
-                hostPath:
-                  path: /usr/bin/nvidia-smi
-                  type: File
   when:
     - nvidia_smi_check.rc == 0
     - has_nvidia_gpu.rc == 0

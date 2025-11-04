@@ -9,6 +9,7 @@
   stat:
     path: "{{ playbook_dir }}/images/prometheus/{{ ansible_architecture }}/prom_prometheus_v3.6.0.tar"
   register: target_tar_stat
+  delegate_to: localhost
   run_once: true
 
 - name: 合并分卷并解压生成所有镜像文件
@@ -26,17 +27,17 @@
     
     # 清理临时zip文件
     rm -f {{ playbook_dir }}/images/prometheus/{{ ansible_architecture }}/images.zip
-  run_once: true  # 控制节点执行一次
   when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
-
+  delegate_to: localhost
+  run_once: true
 
 - name: 查找所有镜像（tar）文件
   ansible.builtin.find:
     path: "{{ playbook_dir }}/images/prometheus/{{ ansible_architecture }}"
     patterns: '*.tar'
     recurse: no
-  delegate_to: localhost
   register: tar_files
+  delegate_to: localhost
   run_once: true
 
 

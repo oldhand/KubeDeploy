@@ -127,13 +127,13 @@ ceph\_namespace: "rook-ceph"      # 部署命名空间，建议保持默认
 
 ceph\_nodes:
 
-&#x20; - name: "oe2203m01"           # 节点名称
+ - name: "oe2203m01"           # 节点名称
 
-&#x20;   devices:
+   devices:
 
-&#x20;     - "nvme2n1p3"             # 本地存储目录路径（如 /mnt/nvme2n1p3）
+     - "nvme2n1p3"             # 本地存储目录路径（如 /mnt/nvme2n1p3）
 
-&#x20;     - "nvme2n1p4"
+     - "nvme2n1p4"
 ```
 
 ## Prometheus 监控体系详解
@@ -199,13 +199,13 @@ ceph\_nodes:
 ```
 process\_names:
 
-&#x20; \- name: "redis"    # 进程别名，用于仪表盘展示
+ \- name: "redis"    # 进程别名，用于仪表盘展示
 
-&#x20;   cmdline: \[".+redis-server"]  # 进程命令行匹配规则
+   cmdline: \[".+redis-server"]  # 进程命令行匹配规则
 
-&#x20; \- name: "nginx"
+ \- name: "nginx"
 
-&#x20;   cmdline: \[".+nginx"]
+   cmdline: \[".+nginx"]
 ```
 
 

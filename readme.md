@@ -87,7 +87,7 @@ KubeDeploy 是面向 Kubernetes 集群的一站式基础设施部署项目，核
 
 
 ```
-\# 格式：ansible-playbook -i \[Ansible清单文件] install.yml
+ 格式：ansible-playbook -i \[Ansible清单文件] install.yml
 
 ansible-playbook -i inventory install.yml
 ```
@@ -103,27 +103,27 @@ ansible-playbook -i inventory install.yml
 
 
 ```
-\# Ceph 集群基础信息
+ Ceph 集群基础信息
 
 ceph\_cluster\_name: "rook-ceph"  # 集群名称，建议保持默认
 
 ceph\_namespace: "rook-ceph"      # 部署命名空间，建议保持默认
 
-\# 存储节点配置（二选一：设备模式/目录模式）
+ 存储节点配置（二选一：设备模式/目录模式）
 
-\# 1. 设备模式（适用于物理机或虚拟机挂载的独立存储设备）
+ 1. 设备模式（适用于物理机或虚拟机挂载的独立存储设备）
 
-\# ceph\_nodes:
+ ceph\_nodes:
 
-\#   - name: "k8s-node-1"        # 节点名称（需与 Kubernetes 节点名一致）
+   - name: "k8s-node-1"        # 节点名称（需与 Kubernetes 节点名一致）
 
-\#     devices: \["sdb"]          # 存储设备路径（如 /dev/sdb，需提前格式化）
+     devices: \["sdb"]          # 存储设备路径（如 /dev/sdb，需提前格式化）
 
-\#   - name: "k8s-node-2"
+   - name: "k8s-node-2"
 
-\#     devices: \["sdb"]
+     devices: \["sdb"]
 
-\# 2. 目录模式（适用于本地目录作为存储，示例）
+ 2. 目录模式（适用于本地目录作为存储，示例）
 
 ceph\_nodes:
 
@@ -320,17 +320,17 @@ process\_names:
 
 
 ```
-\# 检查监控组件状态（monitoring 命名空间）
+ 检查监控组件状态（monitoring 命名空间）
 
 kubectl get pods -n monitoring
 
-\# 预期结果：prometheus-server、grafana、alertmanager 等 Pod 均为 Running 状态
+ 预期结果：prometheus-server、grafana、alertmanager 等 Pod 均为 Running 状态
 
-\# 检查 Ceph 组件状态（rook-ceph 命名空间）
+ 检查 Ceph 组件状态（rook-ceph 命名空间）
 
 kubectl get pods -n rook-ceph
 
-\# 预期结果：rook-ceph-operator、ceph-mon、ceph-osd 等 Pod 均为 Running 状态
+ 预期结果：rook-ceph-operator、ceph-mon、ceph-osd 等 Pod 均为 Running 状态
 ```
 
 ## 注意事项

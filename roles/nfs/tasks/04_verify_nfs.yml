@@ -1,0 +1,37 @@
+---
+- name: 获取 NFS Pod 的 IP 地址
+  command: >
+    kubectl get pod -l app=nfs-server -n {{ nfs_namespace }}
+    -o jsonpath='{.items[0].status.podIP}'
+  register: nfs_pod_ip
+  changed_when: false
+
+- name: 打印 NFS 验证方法与步骤
+  debug:
+    msg: |
+      =======================================================================
+      🎉 NFS 服务端已成功部署并在 K8s 集群内运行！🎉
+      
+      【基本信息】
+      NFS 数据物理存放路径 : {{ nfs_node_name }} 节点上的 {{ nfs_host_path }}
+      NFS 共享挂载目录     : {{ nfs_export_path }}
+      NFS Pod 真实 IP      : {{ nfs_pod_ip.stdout }}
+      
+      【验证方法与步骤 (请直接复制以下命令测试)】
+      
+      步骤 1. 在当前节点上执行 showmount 测试探测：
+              showmount -e {{ nfs_pod_ip.stdout }}
+              # 期望输出: {{ nfs_export_path }} *
+      
+      步骤 2. 在当前节点上手动挂载，测试读写：
+              mkdir -p /mnt/nfs-test
+              mount -t nfs {{ nfs_pod_ip.stdout }}:{{ nfs_export_path }} /mnt/nfs-test
+              touch /mnt/nfs-test/hello_nfs.txt
+              ls -l /mnt/nfs-test/
+              umount /mnt/nfs-test
+      
+      步骤 3. 检查底层宿主机物理目录，确认数据已真实落盘：
+              ls -l {{ nfs_host_path }}
+              # 期望输出: 能看到刚刚创建的 hello_nfs.txt 文件
+      
+      =======================================================================

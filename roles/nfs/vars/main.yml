@@ -1,0 +1,23 @@
+---
+# NFS 部署命名空间
+nfs_namespace: "nfs-system"
+
+# NFS 服务端镜像（指定华为云镜像源）
+nfs_server_image: "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/gists/nfs-server:2.6.4"
+
+# 容器内导出的共享目录路径（适配此镜像写死的默认路径）
+nfs_export_path: "/nfs-share"
+
+# --- 存储相关配置 ---
+# PVC/PV 名称
+nfs_pvc_name: "nfs-server-pvc"
+
+# 申请的存储容量
+nfs_pvc_size: "50Gi"
+
+# 宿主机上的具体物理路径 (数据真实存放地)
+nfs_host_path: "/data/nfs-share"
+
+# 自动获取 Ansible inventory 中当前运行的目标节点名
+# 用于将 PV 和 Pod 绑定调度到这台包含 hostPath 的物理机上
+nfs_node_name: "{{ inventory_hostname }}"

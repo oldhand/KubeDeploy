@@ -1,0 +1,30 @@
+---
+- name: Delete NFS Deployment
+  command: kubectl delete deployment nfs-server -n {{ nfs_namespace }} --ignore-not-found=true
+  changed_when: false
+
+- name: Delete NFS Service
+  command: kubectl delete svc nfs-server -n {{ nfs_namespace }} --ignore-not-found=true
+  changed_when: false
+
+- name: Delete NFS PVC
+  command: kubectl delete pvc {{ nfs_pvc_name }} -n {{ nfs_namespace }} --ignore-not-found=true
+  changed_when: false
+
+- name: Delete NFS PV
+  command: kubectl delete pv {{ nfs_pvc_name }}-pv --ignore-not-found=true
+  changed_when: false
+
+- name: Delete NFS Namespace
+  command: kubectl delete ns {{ nfs_namespace }} --ignore-not-found=true
+  register: ns_delete_result
+  changed_when: "'deleted' in ns_delete_result.stdout"
+
+- name: Wait for NFS Namespace to fully terminate
+  command: kubectl get ns {{ nfs_namespace }}
+  register: ns_check
+  until: ns_check.rc != 0
+  retries: 12
+  delay: 5
+  failed_when: false
+  when: ns_delete_result.changed

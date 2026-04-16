@@ -1,0 +1,25 @@
+---
+- name: 创建 NFS 数据存储目录
+  ansible.builtin.file:
+    path: "{{ nfs_host_path }}"
+    state: directory
+    mode: '0777'
+
+- name: Ensure target directory exists for rendered templates
+  file:
+    path: /tmp/nfs-deploy
+    state: directory
+
+- name: Render NFS server templates
+  template:
+    src: nfs-server.yaml.j2
+    dest: /tmp/nfs-deploy/nfs-server.yaml
+
+- name: Apply NFS server to Kubernetes
+  command: kubectl apply -f /tmp/nfs-deploy/nfs-server.yaml
+  register: nfs_deploy_result
+  changed_when: "'created' in nfs_deploy_result.stdout or 'configured' in nfs_deploy_result.stdout"
+
+- name: 等待 NFS Pod 启动就绪 (超时120s)
+  command: kubectl wait --for=condition=Ready pod -l app=nfs-server -n {{ nfs_namespace }} --timeout=120s
+  changed_when: false

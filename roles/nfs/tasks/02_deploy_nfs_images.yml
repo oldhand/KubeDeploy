@@ -1,0 +1,25 @@
+---
+- name: 检查镜像文件 nfs-server_2.6.4.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/images/nfs/{{ ansible_architecture }}/nfs-server_2.6.4.tar"
+  register: target_tar_stat
+  delegate_to: localhost
+  run_once: true
+
+- name: 解压镜像文件 nfs-server_2.6.4.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/images/nfs/{{ ansible_architecture }}/nfs-server_2.6.4.tar.gz -C {{ playbook_dir }}/images/nfs/{{ ansible_architecture }}/
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+  delegate_to: localhost
+  run_once: true
+
+- name: 复制 nfs-server_2.6.4.tar 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/images/nfs/{{ ansible_architecture }}/nfs-server_2.6.4.tar"
+    dest: "/tmp/nfs-server_2.6.4.tar"
+    mode: 0644
+  when: is_worker == 1
+
+- name: 加载 nfs-server_2.6.4.tar 镜像到Docker
+  shell: "docker load -i /tmp/nfs-server_2.6.4.tar"
+  when: is_worker == 1

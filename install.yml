@@ -3,8 +3,9 @@
   gather_facts: yes
   roles:
 #     Install prometheus for k8s
-    - prometheus
+#    - prometheus
 #     Install ceph for k8s
 #    - ceph
+    - nfs
 
 

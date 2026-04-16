@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ nfs_namespace }}
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ nfs_pvc_name }}-pv
+spec:
+  capacity:
+    storage: {{ nfs_pvc_size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-nfs
+  hostPath:
+    path: {{ nfs_host_path }}
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ nfs_pvc_name }}
+  namespace: {{ nfs_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual-nfs
+  resources:
+    requests:
+      storage: {{ nfs_pvc_size }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  namespace: {{ nfs_namespace }}
+  labels:
+    app: nfs-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      # 开启宿主机网络，极大提升性能并解决 RPC UDP 超时问题
+      hostNetwork: true
+      # 固定 Pod 调度到包含 hostPath 物理路径的具体节点上
+      nodeSelector:
+        kubernetes.io/hostname: {{ nfs_node_name }}
+      # 如果部署在 master 节点，需容忍污点（按需取消注释）
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: nfs-server
+          image: {{ nfs_server_image }}
+          # 通过环境变量告诉镜像要共享哪个目录
+          env:
+            - name: SHARED_DIRECTORY
+              value: {{ nfs_export_path }}
+          ports:
+            - name: nfs-tcp
+              containerPort: 2049
+              protocol: TCP
+            - name: nfs-udp
+              containerPort: 2049
+              protocol: UDP
+            - name: mountd-tcp
+              containerPort: 20048
+              protocol: TCP
+            - name: mountd-udp
+              containerPort: 20048
+              protocol: UDP
+            - name: rpc-tcp
+              containerPort: 111
+              protocol: TCP
+            - name: rpc-udp
+              containerPort: 111
+              protocol: UDP
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: {{ nfs_export_path }}
+              name: nfs-data
+      volumes:
+        - name: nfs-data
+          persistentVolumeClaim:
+            claimName: {{ nfs_pvc_name }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nfs-server
+  namespace: {{ nfs_namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: nfs-tcp
+      port: 2049
+      targetPort: 2049
+      protocol: TCP
+    - name: nfs-udp
+      port: 2049
+      targetPort: 2049
+      protocol: UDP
+    - name: mountd-tcp
+      port: 20048
+      targetPort: 20048
+      protocol: TCP
+    - name: mountd-udp
+      port: 20048
+      targetPort: 20048
+      protocol: UDP
+    - name: rpc-tcp
+      port: 111
+      targetPort: 111
+      protocol: TCP
+    - name: rpc-udp
+      port: 111
+      targetPort: 111
+      protocol: UDP
+  selector:
+    app: nfs-server

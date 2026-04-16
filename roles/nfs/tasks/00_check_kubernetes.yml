@@ -1,0 +1,10 @@
+---
+- name: Check Kubernetes cluster status
+  command: kubectl get nodes
+  register: k8s_status
+  failed_when: k8s_status.rc != 0
+  changed_when: false
+
+- name: Print cluster status
+  debug:
+    msg: "Kubernetes cluster is up and running."

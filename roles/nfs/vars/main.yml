@@ -21,3 +21,7 @@ nfs_host_path: "/data/nfs-share"
 # 自动获取 Ansible inventory 中当前运行的目标节点名
 # 用于将 PV 和 Pod 绑定调度到这台包含 hostPath 的物理机上
 nfs_node_name: "{{ inventory_hostname }}"
+
+# --- 网络相关配置 (新增) ---
+# 对外暴露的 NodePort 端口，用于集群外部机器进行挂载验证
+nfs_node_port: 32049

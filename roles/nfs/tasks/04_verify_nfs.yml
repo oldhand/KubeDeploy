@@ -6,32 +6,57 @@
   register: nfs_pod_ip
   changed_when: false
 
+- name: 获取 NFS Service 的 ClusterIP
+  command: >
+    kubectl get svc nfs-server -n {{ nfs_namespace }}
+    -o jsonpath='{.spec.clusterIP}'
+  register: nfs_svc_ip
+  changed_when: false
+
 - name: 打印 NFS 验证方法与步骤
   debug:
-    msg: |
-      =======================================================================
-      🎉 NFS 服务端已成功部署并在 K8s 集群内运行！🎉
-      
-      【基本信息】
-      NFS 数据物理存放路径 : {{ nfs_node_name }} 节点上的 {{ nfs_host_path }}
-      NFS 共享挂载目录     : {{ nfs_export_path }}
-      NFS Pod 真实 IP      : {{ nfs_pod_ip.stdout }}
-      
-      【验证方法与步骤 (请直接复制以下命令测试)】
-      
-      步骤 1. 在当前节点上执行 showmount 测试探测：
-              showmount -e {{ nfs_pod_ip.stdout }}
-              # 期望输出: {{ nfs_export_path }} *
-      
-      步骤 2. 在当前节点上手动挂载，测试读写：
-              mkdir -p /mnt/nfs-test
-              mount -t nfs {{ nfs_pod_ip.stdout }}:{{ nfs_export_path }} /mnt/nfs-test
-              touch /mnt/nfs-test/hello_nfs.txt
-              ls -l /mnt/nfs-test/
-              umount /mnt/nfs-test
-      
-      步骤 3. 检查底层宿主机物理目录，确认数据已真实落盘：
-              ls -l {{ nfs_host_path }}
-              # 期望输出: 能看到刚刚创建的 hello_nfs.txt 文件
-      
-      =======================================================================
+    msg:
+      - "======================================================================="
+      - "🎉 NFS 服务端已成功部署并在 K8s 集群内运行！🎉"
+      - ""
+      - "【基本配置信息】"
+      - "数据物理存放路径 : {{ nfs_node_name }} 节点上的 {{ nfs_host_path }}"
+      - "容器内真实目录   : {{ nfs_export_path }}"
+      - "NFS Pod 内部 IP  : {{ nfs_pod_ip.stdout }}"
+      - "NFS Service IP   : {{ nfs_svc_ip.stdout }} (用于集群内挂载)"
+      - "NFS NodePort     : {{ nfs_node_port }} (用于集群外挂载)"
+      - ""
+      - "【⚠️ 核心说明】"
+      - "当前 NFS 为纯 v4 模式，容器内已设置为 fsid=0 (伪根)。"
+      - "请勿使用 showmount -e，且挂载目标路径必须统一使用根路径「/」。"
+      - ""
+      - "-----------------------------------------------------------------------"
+      - "【验证方法一：集群内验证】"
+      - "说明：请在属于 K8s 集群的任意节点上执行以下命令"
+      - "步骤 1. 创建挂载点并使用 ClusterIP 挂载："
+      - "        mkdir -p /mnt/nfs-test-internal"
+      - "        mount -t nfs4 {{ nfs_svc_ip.stdout }}:/ /mnt/nfs-test-internal"
+      - "步骤 2. 写入测试文件："
+      - "        echo 'Hello from K8s Internal' > /mnt/nfs-test-internal/test.txt"
+      - "        cat /mnt/nfs-test-internal/test.txt"
+      - "步骤 3. 卸载并清理："
+      - "        umount /mnt/nfs-test-internal && rm -rf /mnt/nfs-test-internal"
+      - ""
+      - "-----------------------------------------------------------------------"
+      - "【验证方法二：集群外验证】"
+      - "说明：请在非 K8s 集群的外部主机执行 (需确保能 ping 通 K8s 节点)"
+      - "步骤 1. 创建挂载点，并指定 NodePort 进行挂载："
+      - "        # 请将 <K8s_Node_IP> 替换为 K8s 任意节点的物理 IP"
+      - "        mkdir -p /mnt/nfs-test-external"
+      - "        mount -t nfs4 -o port={{ nfs_node_port }} <K8s_Node_IP>:/ /mnt/nfs-test-external"
+      - "步骤 2. 写入测试文件："
+      - "        echo 'Hello from External Network' >> /mnt/nfs-test-external/test.txt"
+      - "        cat /mnt/nfs-test-external/test.txt"
+      - "步骤 3. 卸载并清理："
+      - "        umount /mnt/nfs-test-external && rm -rf /mnt/nfs-test-external"
+      - ""
+      - "-----------------------------------------------------------------------"
+      - "【最终确认：宿主机物理落盘检查】"
+      - "请登录到 {{ nfs_node_name }} 节点，检查底层物理目录，确认数据是否真实落盘："
+      - "        cat {{ nfs_host_path }}/test.txt"
+      - "======================================================================="

@@ -54,12 +54,8 @@ spec:
       labels:
         app: nfs-server
     spec:
-      # 开启宿主机网络，极大提升性能并解决 RPC UDP 超时问题
-      hostNetwork: true
-      # 固定 Pod 调度到包含 hostPath 物理路径的具体节点上
       nodeSelector:
         kubernetes.io/hostname: {{ nfs_node_name }}
-      # 如果部署在 master 节点，需容忍污点（按需取消注释）
       tolerations:
         - key: "node-role.kubernetes.io/master"
           operator: "Exists"
@@ -70,10 +66,23 @@ spec:
       containers:
         - name: nfs-server
           image: {{ nfs_server_image }}
-          # 通过环境变量告诉镜像要共享哪个目录
-          env:
-            - name: SHARED_DIRECTORY
-              value: {{ nfs_export_path }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # 1. 将镜像自带的启动脚本放入后台运行
+              /bin/nfsd.sh &
+              
+              # 2. 睡眠 3 秒，等待自带脚本把默认的 exports 写入完毕
+              sleep 3
+              
+              # 3. 强行覆盖掉它的配置，换成我们需要的高权限 (rw 和 no_root_squash)
+              echo "{{ nfs_export_path }} *(rw,sync,no_subtree_check,no_root_squash,fsid=0)" > /etc/exports
+              
+              # 4. 动态刷新 NFS 配置，使其立刻在内核生效
+              exportfs -ar
+              
+              # 5. 挂起主进程，防止容器异常退出
+              wait
           ports:
             - name: nfs-tcp
               containerPort: 2049
@@ -110,11 +119,12 @@ metadata:
   name: nfs-server
   namespace: {{ nfs_namespace }}
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - name: nfs-tcp
       port: 2049
       targetPort: 2049
+      nodePort: {{ nfs_node_port }}
       protocol: TCP
     - name: nfs-udp
       port: 2049

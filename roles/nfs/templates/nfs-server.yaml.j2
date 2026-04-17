@@ -1,150 +1,68 @@
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ nfs_namespace }}
+- name: 获取 NFS Pod 的 IP 地址
+  command: >
+    kubectl get pod -l app=nfs-server -n {{ nfs_namespace }}
+    -o jsonpath='{.items[0].status.podIP}'
+  register: nfs_pod_ip
+  changed_when: false
 
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: {{ nfs_pvc_name }}-pv
-spec:
-  capacity:
-    storage: {{ nfs_pvc_size }}
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual-nfs
-  hostPath:
-    path: {{ nfs_host_path }}
-    type: DirectoryOrCreate
+- name: 获取 NFS Service 的 ClusterIP
+  command: >
+    kubectl get svc nfs-server -n {{ nfs_namespace }}
+    -o jsonpath='{.spec.clusterIP}'
+  register: nfs_svc_ip
+  changed_when: false
 
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ nfs_pvc_name }}
-  namespace: {{ nfs_namespace }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: manual-nfs
-  resources:
-    requests:
-      storage: {{ nfs_pvc_size }}
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nfs-server
-  namespace: {{ nfs_namespace }}
-  labels:
-    app: nfs-server
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: nfs-server
-  template:
-    metadata:
-      labels:
-        app: nfs-server
-    spec:
-      nodeSelector:
-        kubernetes.io/hostname: {{ nfs_node_name }}
-      tolerations:
-        - key: "node-role.kubernetes.io/master"
-          operator: "Exists"
-          effect: "NoSchedule"
-        - key: "node-role.kubernetes.io/control-plane"
-          operator: "Exists"
-          effect: "NoSchedule"
-      containers:
-        - name: nfs-server
-          image: {{ nfs_server_image }}
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              # 1. 将镜像自带的启动脚本放入后台运行
-              /bin/nfsd.sh &
-              
-              # 2. 睡眠 3 秒，等待自带脚本把默认的 exports 写入完毕
-              sleep 3
-              
-              # 3. 强行覆盖掉它的配置，换成我们需要的高权限 (rw 和 no_root_squash)
-              echo "{{ nfs_export_path }} *(rw,sync,no_subtree_check,no_root_squash,fsid=0)" > /etc/exports
-              
-              # 4. 动态刷新 NFS 配置，使其立刻在内核生效
-              exportfs -ar
-              
-              # 5. 挂起主进程，防止容器异常退出
-              wait
-          ports:
-            - name: nfs-tcp
-              containerPort: 2049
-              protocol: TCP
-            - name: nfs-udp
-              containerPort: 2049
-              protocol: UDP
-            - name: mountd-tcp
-              containerPort: 20048
-              protocol: TCP
-            - name: mountd-udp
-              containerPort: 20048
-              protocol: UDP
-            - name: rpc-tcp
-              containerPort: 111
-              protocol: TCP
-            - name: rpc-udp
-              containerPort: 111
-              protocol: UDP
-          securityContext:
-            privileged: true
-          volumeMounts:
-            - mountPath: {{ nfs_export_path }}
-              name: nfs-data
-      volumes:
-        - name: nfs-data
-          persistentVolumeClaim:
-            claimName: {{ nfs_pvc_name }}
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nfs-server
-  namespace: {{ nfs_namespace }}
-spec:
-  type: NodePort
-  ports:
-    - name: nfs-tcp
-      port: 2049
-      targetPort: 2049
-      nodePort: {{ nfs_node_port }}
-      protocol: TCP
-    - name: nfs-udp
-      port: 2049
-      targetPort: 2049
-      protocol: UDP
-    - name: mountd-tcp
-      port: 20048
-      targetPort: 20048
-      protocol: TCP
-    - name: mountd-udp
-      port: 20048
-      targetPort: 20048
-      protocol: UDP
-    - name: rpc-tcp
-      port: 111
-      targetPort: 111
-      protocol: TCP
-    - name: rpc-udp
-      port: 111
-      targetPort: 111
-      protocol: UDP
-  selector:
-    app: nfs-server
+- name: 打印 NFS 验证方法与步骤
+  debug:
+    msg:
+      - "======================================================================="
+      - "🎉 NFS 服务端已成功部署并在 K8s 集群内运行！🎉"
+      - ""
+      - "【基本配置信息】"
+      - "数据物理存放路径 : {{ nfs_node_name }} 节点上的 {{ nfs_host_path }}"
+      - "容器内真实目录   : {{ nfs_export_path }}"
+      - "NFS Pod 内部 IP  : {{ nfs_pod_ip.stdout }}"
+      - "NFS Service IP   : {{ nfs_svc_ip.stdout }} (用于集群内挂载)"
+      - "NFS NodePort     : {{ nfs_node_port }} (用于集群外挂载)"
+      - ""
+      - "【⚠️ 核心说明】"
+      - "1. 当前 NFS 已配置为 纯 v3 模式。"
+      - "2. 挂载目标必须使用全路径「{{ nfs_export_path }}」，不再使用伪根(/)。"
+      - "3. 避坑指南：如果容器启动失败，请确保目标节点已加载 nfsd 内核模块 (modprobe nfsd)。"
+      - ""
+      - "-----------------------------------------------------------------------"
+      - "【验证方法一：集群内验证】"
+      - "说明：请在属于 K8s 集群的任意节点上执行以下命令"
+      - "步骤 1. 探测共享目录："
+      - "        showmount -e {{ nfs_svc_ip.stdout }}"
+      - "步骤 2. 创建挂载点并使用 ClusterIP 挂载："
+      - "        mkdir -p /mnt/nfs-test-internal"
+      - "        mount -t nfs -o vers=3 {{ nfs_svc_ip.stdout }}:{{ nfs_export_path }} /mnt/nfs-test-internal"
+      - "步骤 3. 写入测试文件："
+      - "        echo 'Hello from K8s Internal' > /mnt/nfs-test-internal/test.txt"
+      - "        cat /mnt/nfs-test-internal/test.txt"
+      - "步骤 4. 卸载并清理："
+      - "        umount /mnt/nfs-test-internal && rm -rf /mnt/nfs-test-internal"
+      - ""
+      - "-----------------------------------------------------------------------"
+      - "【验证方法二：集群外验证】"
+      - "说明：请在非 K8s 集群的外部主机执行 (需确保能 ping 通 K8s 节点)"
+      - "步骤 1. 探测共享信息："
+      - "        # 请将 <K8s_Node_IP> 替换为 K8s 任意节点的物理 IP"
+      - "        showmount -e <K8s_Node_IP>"
+      - "步骤 2. 创建挂载点进行挂载："
+      - "        # 注意：v3 强依赖 rpcbind(111) 和 mountd(20048)，如果跨网段请确保防火墙放行"
+      - "        mkdir -p /mnt/nfs-test-external"
+      - "        mount -t nfs -o vers=3,port={{ nfs_node_port }} <K8s_Node_IP>:{{ nfs_export_path }} /mnt/nfs-test-external"
+      - "步骤 3. 写入测试文件："
+      - "        echo 'Hello from External Network' >> /mnt/nfs-test-external/test.txt"
+      - "        cat /mnt/nfs-test-external/test.txt"
+      - "步骤 4. 卸载并清理："
+      - "        umount /mnt/nfs-test-external && rm -rf /mnt/nfs-test-external"
+      - ""
+      - "-----------------------------------------------------------------------"
+      - "【最终确认：宿主机物理落盘检查】"
+      - "请登录到 {{ nfs_node_name }} 节点，检查底层物理目录，确认数据是否真实落盘："
+      - "        cat {{ nfs_host_path }}/test.txt"
+      - "======================================================================="

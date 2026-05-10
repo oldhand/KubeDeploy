@@ -89,7 +89,7 @@ spec:
               mkdir -p {{ nfs_share_dir | default("/nfs-share") }}
               chmod 777 {{ nfs_share_dir | default("/nfs-share") }}
 
-              echo "{{ nfs_share_dir | default("/nfs-share") }} *(rw,sync,no_subtree_check,no_root_squash)" > /etc/exports
+              echo "{{ nfs_share_dir | default("/nfs-share") }} *(rw,sync,no_subtree_check,no_root_squash,insecure)" > /etc/exports
               exportfs -rv
 
               echo ">>> NFS server ready"
@@ -144,10 +144,12 @@ spec:
     - name: mountd-tcp
       port: 20048
       targetPort: 20048
+      nodePort: {{ nfs_mount_node_port }}
       protocol: TCP
     - name: mountd-udp
       port: 20048
       targetPort: 20048
+      nodePort: {{ nfs_mount_node_port }}
       protocol: UDP
     - name: rpc-tcp
       port: 111

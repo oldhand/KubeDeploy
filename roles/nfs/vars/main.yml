@@ -25,3 +25,6 @@ nfs_node_name: "{{ inventory_hostname }}"
 # --- 网络相关配置 (新增) ---
 # 对外暴露的 NodePort 端口，用于集群外部机器进行挂载验证
 nfs_node_port: 32049
+
+# 用于集群外部机器进行挂载验证
+nfs_mount_node_port: 32048

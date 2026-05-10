@@ -54,7 +54,7 @@
       - "步骤 2. 创建挂载点进行挂载："
       - "        # 注意：v3 强依赖 rpcbind(111) 和 mountd(20048)，如果跨网段请确保防火墙放行"
       - "        mkdir -p /mnt/nfs-test-external"
-      - "        mount -t nfs -o vers=3,port={{ nfs_node_port }} <K8s_Node_IP>:{{ nfs_export_path }} /mnt/nfs-test-external"
+      - "        mount -t nfs -o vers=3,port={{ nfs_node_port }},mountport={{ nfs_mount_node_port }} <K8s_Node_IP>:{{ nfs_export_path }} /mnt/nfs-test-external"
       - "步骤 3. 写入测试文件："
       - "        echo 'Hello from External Network' >> /mnt/nfs-test-external/test.txt"
       - "        cat /mnt/nfs-test-external/test.txt"

@@ -1,0 +1,196 @@
+---
+- name: "确保 Redis 主机目录存在并设置正确权限"
+  ansible.builtin.file:
+    path: "{{ redis_host_path }}"
+    state: directory
+    mode: '0777'  # 给予读写执行权限，适合 MySQL 数据目录
+    recurse: true
+
+- name: "创建命名空间"
+  kubernetes.core.k8s:
+    name: "{{ namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  run_once: true
+
+
+
+- name: 创建Redis ConfigMap（自适应单节点/集群配置）
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ redis_name }}-config"
+        namespace: "{{ namespace }}"
+      data:
+        redis.conf: |
+          # 基础网络配置
+          bind 0.0.0.0
+          port {{ redis_port }}
+          daemonize no
+          protected-mode no
+          
+          # 数据存储配置
+          dir /data
+          requirepass {{ redis_password }}
+          masterauth {{ redis_password }}
+          
+          # 模式自适应配置（单节点关闭集群，集群启用）
+          {% if redis_mode == "cluster" %}
+          cluster-announce-bus-port 16379
+          cluster-node-timeout 15000
+          cluster-config-file /data/nodes.conf
+          cluster-migration-barrier 1
+          {% else %}
+          cluster-enabled no
+          {% endif %}
+          
+          # 性能与持久化配置
+          maxmemory {{ redis_maxmemory }} 
+          maxmemory-policy allkeys-lru 
+          appendonly yes
+          appendfsync everysec
+          no-appendfsync-on-rewrite yes
+  run_once: true
+
+# 5. 单节点模式专用存储
+- name: 单节点模式 - 创建 Redis 数据 PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "{{ redis_name }}-pv"  # PVC名称（与Deployment挂载对应）
+        namespace: "{{ namespace }}"
+      spec:
+        capacity:
+          storage: 10Gi
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: redis-storage
+        hostPath:
+          path: "{{ redis_host_path }}"  # 节点上的实际目录（需提前创建并授权）
+  when: redis_mode == "single"
+  run_once: true
+
+
+- name: 单节点模式 - 创建 Redis 数据 PVC
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ redis_name }}-data"  # PVC名称（与Deployment挂载对应）
+        namespace: "{{ namespace }}"
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: "{{ redis_storage_size }}"
+        storageClassName: redis-storage
+  when: redis_mode == "single"
+  run_once: true
+
+
+- name: 渲染Deployment/StatefulSet模板
+  ansible.builtin.template:
+    src: redis-deploy-sts.yaml.j2
+    dest: /tmp/redis-deploy-sts.yaml
+    mode: '0644'
+  run_once: true
+
+- name: 应用Deployment/StatefulSet
+  kubernetes.core.k8s:
+    src: /tmp/redis-deploy-sts.yaml
+    state: present
+
+# 6. 服务配置（自动适配模式）
+- name: 创建Redis Headless Service（集群模式）
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ redis_name }}-headless"
+        namespace: "{{ namespace }}"
+      spec:
+        clusterIP: None
+        selector:
+          app: "{{ redis_name }}"
+        ports:
+          - port: "{{ redis_port }}"
+            name: redis
+  run_once: true
+  when: redis_mode == "single"
+
+- name: 集群模式 - 创建Headless Service（用于集群节点通信）
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ redis_name }}-headless"
+        namespace: "{{ namespace }}"
+      spec:
+        clusterIP: None  # Headless Service无集群IP，通过DNS解析Pod
+        selector:
+          app: "{{ redis_name }}"  # 匹配Redis Pod标签
+        ports:
+          - port: "{{ redis_port }}"
+            name: redis  # 服务端口（与Pod端口对应）
+          - port: 16379
+            name: cluster  # 集群总线端口（与Pod端口对应）
+  when: redis_mode == "cluster"
+  run_once: true
+
+- name: 创建NodePort Service（外部/集群内访问Redis）
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ redis_name }}-nodeport"
+        namespace: "{{ namespace }}"
+      spec:
+        type: NodePort  # 暴露节点端口（外部可访问）
+        selector:
+          app: "{{ redis_name }}"  # 匹配Redis Pod标签
+        ports:
+          - port: "{{ redis_port }}"        # Service集群内端口
+            targetPort: "{{ redis_port }}"  # 指向Pod端口
+            nodePort: "{{ redis_nodeport }}"# 节点暴露端口（外部访问用）
+  run_once: true
+
+# 7. 等待部署就绪
+- name: 等待Redis Pod全部运行就绪
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ namespace }}"
+    label_selectors:
+      - app = {{ redis_name }}  # 筛选Redis Pod
+  register: redis_pod_status
+  until:
+    - redis_pod_status.resources | map(attribute='status.phase') | unique == ['Running']
+  retries: 30  # 重试30次（总等待时间30*10=300秒=5分钟）
+  delay: 10    # 每10秒检查一次
+  run_once: true
+
+# 8. 集群模式初始化
+- name: 集群模式 - 初始化Redis集群（创建主从关系）
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ redis_name }}-0"  # 从第一个Pod执行初始化命令
+    command: >
+      redis-cli -a {{ redis_password }} --cluster create
+      {% for i in range(redis_total_nodes | int) %}
+      {{ redis_name }}-{{ i }}.{{ redis_name }}-headless:{{ redis_port }}
+      {% endfor %}
+      --cluster-replicas {{ cluster_replicas }}  # 每个主节点的从节点数
+      --cluster-yes  # 自动确认集群创建（无需手动输入yes）
+  when: redis_mode == "cluster"
+  run_once: true
+

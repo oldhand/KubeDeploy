@@ -1,0 +1,181 @@
+---
+- name: "确保 Minio 主机目录存在并设置正确权限"
+  ansible.builtin.file:
+    path: "{{ minio_host_path }}"
+    state: directory
+    mode: '0755'  # 收紧权限，避免过度开放
+    owner: root
+    group: root
+    recurse: true
+
+- name: "创建命名空间"
+  kubernetes.core.k8s:
+    name: "{{ namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  run_once: true
+
+- name: 创建 MinIO Secret
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ minio_name }}-secret"
+        namespace: "{{ namespace }}"
+      type: Opaque
+      data:
+        root-user: "{{ minio_root_user | b64encode }}"
+        root-password: "{{ minio_root_password | b64encode }}"
+  run_once: true
+
+
+# 5. 单节点模式专用存储
+- name: 单节点模式 - 创建 Minio 数据 PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "{{ minio_name }}-pv"  # PVC名称（与Deployment挂载对应）
+        namespace: "{{ namespace }}"
+      spec:
+        capacity:
+          storage: "{{ minio_storage_size }}"
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: minio-storage
+        hostPath:
+          path: "{{ minio_host_path }}"  # 节点上的实际目录（需提前创建并授权）
+  when: minio_mode == "standalone"
+  run_once: true
+
+
+- name: 单节点模式 - 创建 Minio 数据 PVC
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ minio_name }}-data"  # PVC名称（与Deployment挂载对应）
+        namespace: "{{ namespace }}"
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: "{{ minio_storage_size }}"
+        storageClassName: minio-storage
+  when: minio_mode == "standalone"
+  run_once: true
+
+
+- name: 渲染单节点MinIO（Deployment）
+  ansible.builtin.template:
+    src: "minio-deployment.yml.j2"
+    dest: /tmp/deploy-minio.yaml
+    mode: '0644'
+  when: minio_mode == "standalone"
+  run_once: true
+
+- name: 渲染集群模式MinIO（StatefulSet）
+  ansible.builtin.template:
+    src: "minio-statefulset.yml.j2"
+    dest: /tmp/deploy-minio.yaml
+    mode: '0644'
+  when: minio_mode == "distributed"
+  run_once: true
+
+- name: 应用Deployment/StatefulSet
+  kubernetes.core.k8s:
+    src: /tmp/deploy-minio.yaml
+    state: present
+
+
+# 服务配置（自动适配模式）
+- name: 集群模式 - 创建Headless Service（用于集群节点通信）
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ minio_name }}-headless"
+        namespace: "{{ namespace }}"
+      spec:
+        clusterIP: None  # Headless Service无集群IP
+        selector:
+          app: "{{ minio_name }}"
+        ports:
+          - port: "{{ minio_port }}"
+            name: api
+          - port: "{{ minio_console_port }}"
+            name: console
+  run_once: true
+
+- name: 创建 NodePort Service（外部/集群内访问Minio）
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ minio_name }}-nodeport"
+        namespace: "{{ namespace }}"
+      spec:
+        type: NodePort  # 暴露节点端口（外部可访问）
+        selector:
+          app: "{{ minio_name }}"  # 匹配Minio Pod标签
+        ports:
+          - port: "{{ minio_port }}"        # Service集群内端口
+            targetPort: "{{ minio_port }}"  # 指向Pod端口
+            nodePort: "{{ minio_nodeport }}"# 节点暴露端口（外部访问用）
+  run_once: true
+
+
+- name: 创建 NodePort Console Service（外部/集群内访问Minio）
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ minio_name }}-console-nodeport"
+        namespace: "{{ namespace }}"
+      spec:
+        type: NodePort  # 暴露节点端口（外部可访问）
+        selector:
+          app: "{{ minio_name }}"
+        ports:
+          - port: "{{ minio_console_port }}"        # Service集群内端口
+            targetPort: "{{ minio_console_port }}"  # 指向 Console Pod端口
+            nodePort: "{{ minio_console_nodeport }}"# 节点暴露 Console 端口（外部访问用）
+  run_once: true
+
+
+# 7. 等待部署就绪
+- name: 等待Minio Pod全部运行就绪
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ namespace }}"
+    label_selectors:
+      - app = {{ minio_name }}  # 筛选Minio Pod
+  register: minio_pod_status
+  until:
+    - minio_pod_status.resources | map(attribute='status.phase') | unique == ['Running']
+  retries: 30  # 重试30次（总等待时间30*10=300秒=5分钟）
+  delay: 10    # 每10秒检查一次
+  run_once: true
+
+# 集群模式初始化
+- name: 集群模式 - 初始化Minio集群
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ minio_name }}-0"
+    command: >
+      mc admin cluster join {{ minio_root_user }}:{{ minio_root_password }}@{{ minio_name }}-0.{{ minio_name }}-headless:{{ minio_port }}
+      {% for i in range(1, minio_total_nodes | int) %}
+      {{ minio_name }}-{{ i }}.{{ minio_name }}-headless:{{ minio_port }}
+      {% endfor %}
+      --yes
+  when: minio_mode == "distributed"
+  run_once: true

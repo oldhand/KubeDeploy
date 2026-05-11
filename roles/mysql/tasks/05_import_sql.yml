@@ -1,0 +1,22 @@
+---
+
+- name: "复制 init.sql 到主库 Pod"
+  kubernetes.core.k8s_cp:
+    namespace: "{{ namespace }}"
+    pod: "{{ mysql_name }}-0"  # 主库 Pod 名称
+    container: "{{ mysql_name }}"  # 容器名称（与 StatefulSet 中定义一致）
+    local_path: "{{ role_path }}/files/init.sql"  # 本地 init.sql 路径（通常在 roles/mysql/files 下）
+    remote_path: "/tmp/init.sql"  # Pod 内目标路径
+    state: to_pod  # 明确指定方向：本地文件复制到 Pod 内
+
+
+- name: "在主库执行 init.sql"
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ mysql_name }}-0"
+    command: >
+      bash -c 'mysql -u root -p"{{ mysql_root_password }}" --connect-timeout=5 < /tmp/init.sql'
+  register: init_sql_result
+  until: init_sql_result.rc == 0
+  retries: 3
+  delay: 5

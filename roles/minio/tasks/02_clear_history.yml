@@ -1,0 +1,30 @@
+#---
+- name: 清理 Minio 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n {{ namespace }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n {{ namespace }} --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "{{ minio_name }}" }
+    - { kind: StatefulSet, name: "{{ minio_name }}" }
+    - { kind: ReplicaSet, name: "{{ minio_name }}" }
+    - { kind: Job, name: "{{ minio_name }}" }
+    - { kind: Pod, name: "{{ minio_name }}" }
+    - { kind: Service, name: "{{ minio_name }}" }
+    - { kind: ConfigMap, name: "{{ minio_name }}" }
+    - { kind: Secret, name: "{{ minio_name }}" }
+    - { kind: PersistentVolumeClaim, name: "{{ minio_name }}" }
+  failed_when: false
+  run_once: true
+
+
+- name: 清理 Minio 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "{{ minio_name }}" }
+  failed_when: false
+  run_once: true
+

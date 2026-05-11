@@ -1,0 +1,12 @@
+---
+- name: 输出部署结果摘要
+  ansible.builtin.debug:
+    msg:
+      - "=================================================="
+      - "部署模式：{{ redis_mode }}（{{ redis_total_nodes }}节点）"
+      - "命名空间：{{ namespace }}"
+      - "访问地址："
+      - "   - 集群内：{{ redis_name }}-nodeport.{{ namespace }}.svc:{{ redis_port }}"
+      - "   - 外部：任意K8s节点IP:{{ redis_nodeport }}"
+      - "访问命令：redis-cli -h <节点IP> -p {{ redis_nodeport }} -a {{ redis_password }}"
+      - "=================================================="

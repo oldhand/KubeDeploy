@@ -1,0 +1,69 @@
+---
+- name: 显示当前主机的系统信息
+  ansible.builtin.debug:
+    msg:
+      - "操作系统: {{ ansible_distribution }}"
+      - "版本: {{ ansible_distribution_version }}"
+      - "CPU架构: {{ ansible_architecture }}"
+
+- name: 检查Kubernetes集群
+  kubernetes.core.k8s_info:
+    kind: Node
+    api_version: v1
+  register: k8s_nodes
+  failed_when: false
+  run_once: true
+
+- name: 验证Kubernetes集群可用性
+  ansible.builtin.assert:
+    that:
+      - k8s_nodes.resources is defined
+      - k8s_nodes.resources | length > 0
+    success_msg: "Kubernetes集群已部署，发现{{ k8s_nodes.resources | length }}个节点"
+    fail_msg: "未检测到可用的Kubernetes集群，请先部署集群"
+  run_once: true
+
+
+- name: "计算可用节点数量（排除不可调度节点）"
+  set_fact:
+    available_nodes: "{{ (k8s_nodes.resources | rejectattr('spec.unschedulable', 'defined') | list | length) | int }}"
+  run_once: true
+
+- name: "转换参数为整数"
+  set_fact:
+    minio_total_nodes: "{{ available_nodes | int }}"
+  run_once: true
+
+
+- name: "显示最终配置"
+  ansible.builtin.debug:
+    msg:
+      - "集群总节点数: {{ k8s_nodes.resources | length }}"
+      - "可用节点数（排除封锁节点）: {{ minio_total_nodes }}"
+  run_once: true
+
+- name: 单节点配置
+  ansible.builtin.set_fact:
+    minio_mode: "standalone"
+    minio_cluster_enabled: "no"
+    deployment_kind: "Deployment"
+    headless_needed: false
+  when: minio_total_nodes | int == 1
+
+- name: 集群模式配置
+  ansible.builtin.set_fact:
+    minio_mode: "distributed"
+    minio_cluster_enabled: "yes"
+    deployment_kind: "StatefulSet"
+    headless_needed: true
+    minio_replicas: "{{ minio_total_nodes | int }}"
+  when: minio_total_nodes | int > 1  # MinIO 分布式至少需要2节点
+
+- name: 校验 NodePort 端口范围
+  ansible.builtin.assert:
+    that:
+      - minio_nodeport | int >= 30000
+      - minio_nodeport | int <= 32767
+      - minio_console_nodeport | int >= 30000
+      - minio_console_nodeport | int <= 32767
+

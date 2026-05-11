@@ -20,6 +20,7 @@
   register: nfs_deploy_result
   changed_when: "'created' in nfs_deploy_result.stdout or 'configured' in nfs_deploy_result.stdout"
 
+
 - name: 等待 NFS Pod 启动就绪 (超时120s)
   command: kubectl wait --for=condition=Ready pod -l app=nfs-server -n {{ nfs_namespace }} --timeout=120s
   changed_when: false

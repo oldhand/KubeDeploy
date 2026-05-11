@@ -1,0 +1,17 @@
+---
+- name: 创建临时目录存放镜像
+  file:
+    path: "/tmp/images"
+    state: directory
+    mode: '0755'
+
+- name: 复制 redis_8.2.1.tar 镜像文件到目标节点
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/images/{{ ansible_architecture }}/minio_minio_RELEASE.2025-09-07T16-13-09Z.tar"
+    dest: "/tmp/images/minio_minio_RELEASE.2025-09-07T16-13-09Z.tar"
+    mode: '0644'
+
+- name: 加载 redis_8.2.1.tar 镜像文件到 Docker
+  shell: "docker load -i /tmp/images/minio_minio_RELEASE.2025-09-07T16-13-09Z.tar"
+
+

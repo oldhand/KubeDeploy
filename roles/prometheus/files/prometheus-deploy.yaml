@@ -368,6 +368,23 @@ spec:
       nodePort: 30090
   type: NodePort
 ---
+# 新增：Prometheus Headless Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-headless
+  namespace: prometheus
+  labels:
+    app: prometheus
+spec:
+  clusterIP: None
+  selector:
+    app: prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+      name: web
+---
 # Node Exporter Service
 apiVersion: v1
 kind: Service

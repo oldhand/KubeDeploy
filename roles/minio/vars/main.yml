@@ -1,0 +1,23 @@
+# 整个平台的命名空间
+namespace: kube
+
+# MinIO 基础配置
+minio_name: "minio-server"
+minio_port: 9000
+minio_console_port: 9001
+minio_nodeport: 30900
+minio_console_nodeport: 30901
+minio_host_path: "/data/minio"  # 所有节点需提前创建此目录
+minio_image: "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"
+
+# 认证信息
+minio_root_user: "admin"
+minio_root_password: "!qaz2Wsx"
+
+# 存储配置
+minio_storage_size: "20Gi"
+minio_replicas: 1  # 默认单节点
+
+# 集群配置
+minio_cluster_enabled: "no"
+minio_domain: "minio-cluster"

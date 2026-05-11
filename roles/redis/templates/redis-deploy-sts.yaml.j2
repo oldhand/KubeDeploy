@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: {{ deployment_kind }}  # 动态切换：Deployment/StatefulSet
+metadata:
+  name: {{ redis_name }}
+  namespace: {{ namespace }}
+  labels:
+    app: {{ redis_name }}
+spec:
+  # 集群模式专属：StatefulSet依赖Headless Service
+  {% if redis_mode == "cluster" %}
+  serviceName: {{ redis_name }}-headless
+  {% endif %}
+
+  # 副本数（强制整数）
+  replicas: {{ redis_total_nodes | int }}
+
+  # 标签选择器
+  selector:
+    matchLabels:
+      app: {{ redis_name }}
+
+  # Pod模板
+  template:
+    metadata:
+      labels:
+        app: {{ redis_name }}
+        {% if redis_mode == "cluster" %}
+        statefulset: {{ redis_name }}  # 集群Pod额外标签
+        {% endif %}
+
+    spec:
+      # 容忍控制节点污点（允许部署在Master）
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+
+      # 集群模式：反亲和性（避免同节点部署多个Pod）
+      {% if redis_mode == "cluster" %}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ redis_name }}
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      {% endif %}
+
+      # 容器配置
+      containers:
+        - name: {{ redis_name }}
+          image: {{ redis_image }}  # 镜像地址（从变量读取）
+          env:
+            - name: TZ
+              value: Asia/Shanghai  # 时区配置
+            - name: SKIP_FIX_PERMS  # 新增这一行，跳过权限检查
+              value: "1"
+            # 集群模式：注入Pod名称和Headless Service（用于集群通信）
+            {% if redis_mode == "cluster" %}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_SERVICE_NAME
+              value: {{ redis_name }}-headless
+            {% endif %}
+          # 启动参数（指定配置文件+集群通告IP）
+          args:
+            - /etc/redis/redis.conf
+            {% if redis_mode == "cluster" %}
+            - --cluster-announce-ip "$(POD_NAME).$(POD_SERVICE_NAME)"
+            {% endif %}
+          # 暴露端口
+          ports:
+            - containerPort: {{ redis_port | int }}
+              name: redis  # 端口名称（匹配探针）
+            {% if redis_mode == "cluster" %}
+            - containerPort: 16379
+              name: cluster  # 集群总线端口
+            {% endif %}
+          # 资源限制（动态变量：单节点/集群不同配置）
+          resources:
+            requests:
+              cpu: "{{ redis_resources.requests.cpu }}"
+              memory: "{{ redis_resources.requests.memory }}"
+            limits:
+              cpu: "{{ redis_resources.limits.cpu }}"
+              memory: "{{ redis_resources.limits.memory }}"
+          # 存活探针（检测容器运行状态）
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # 就绪探针（检测容器可用性）
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - "{{ redis_password }}"  # 密码含特殊字符，加引号
+                - ping
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # 卷挂载
+          volumeMounts:
+            - name: redis-config
+              mountPath: /etc/redis  # 挂载ConfigMap（配置文件）
+            - name: redis-data
+              mountPath: /data       # 挂载数据卷（PVC）
+
+      # 卷配置（挂载ConfigMap）
+      volumes:
+        - name: redis-config
+          configMap:
+            name: {{ redis_name }}-config  # 关联前面的ConfigMap
+{% if redis_mode == "single" %}
+# 单节点模式添加数据卷（关联PVC）
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ redis_name }}-data  # 关联单节点模式创建的PVC
+{% endif %}
+  # 集群模式专属：动态生成PVC（每个Pod一个PVC）
+  {% if redis_mode == "cluster" %}
+  volumeClaimTemplates:
+      - metadata:
+        name: redis-data
+        spec:
+          accessModes: [ "ReadWriteOnce" ]  # 单节点读写（符合Redis数据特性）
+          resources:
+            requests:
+              storage: {{ redis_storage_size }}
+          storageClassName: {{ redis_storage_class }}  # 存储类（从变量读取）
+  {% endif %}

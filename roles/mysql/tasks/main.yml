@@ -1,0 +1,8 @@
+---
+- include_tasks: 00_check_kubernetes.yml
+- include_tasks: 01_deploy_mysql_images.yml
+- include_tasks: 02_clear_history.yml
+- include_tasks: 03_deploy_master_mysql.yml
+- include_tasks: 04_deploy_slave_mysql.yml
+- include_tasks: 05_import_sql.yml
+- include_tasks: 06_show_mysql.yml

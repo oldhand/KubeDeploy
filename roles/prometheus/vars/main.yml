@@ -1,8 +1,8 @@
 ---
 mysqld_exporter:
   mysql_user: "root"  # 你的MySQL用户名
-  mysql_password: "b57e6fb1e65c175e"  # 你的MySQL密码
-  mysql_addr: "47.113.103.233:13306"  # 你的MySQL地址+端口
+  mysql_password: "!qaz2Wsx"  # 你的MySQL密码
+  mysql_addr: "mysql-5-7-44-headless.kube.svc.cluster.local:3306"  # 你的MySQL地址+端口
 
 
 

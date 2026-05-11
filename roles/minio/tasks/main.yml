@@ -1,0 +1,6 @@
+---
+- include_tasks: 00_check_kubernetes.yml
+- include_tasks: 01_deploy_minio_images.yml
+- include_tasks: 02_clear_history.yml
+- include_tasks: 03_deploy_minio.yml
+- include_tasks: 04_show_minio.yml

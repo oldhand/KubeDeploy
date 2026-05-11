@@ -1,0 +1,13 @@
+---
+- name: 输出部署结果摘要
+  ansible.builtin.debug:
+    msg:
+      - "=================================================="
+      - "部署模式：{{ minio_mode }}（{{ minio_total_nodes }}节点）"
+      - "命名空间：{{ namespace }}"
+      - "访问地址："
+      - "   - 集群内：{{ minio_name }}-nodeport.{{ namespace }}.svc:{{ minio_port }}"
+      - "   - 外部：任意K8s节点IP:{{ minio_nodeport }}"
+      - "控制台访问：任意K8s节点IP:{{ minio_console_nodeport }}"
+      - "用户名：{{ minio_root_user }}, 密码：{{ minio_root_password }}"
+      - "=================================================="

@@ -1,0 +1,69 @@
+---
+
+
+###########################################################################
+# 6. 初始化主从复制（仅当存在从库时执行）
+###########################################################################
+- name: "等待主实例就绪"
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ namespace }}"
+    label_selectors:
+      - "app={{ mysql_name }}"
+      - "statefulset.kubernetes.io/pod-name={{ mysql_name }}-0"
+  register: mysql_main_pod
+  until:
+    - mysql_main_pod.resources is defined
+    - mysql_main_pod.resources | length > 0
+    - mysql_main_pod.resources[0].status.phase == "Running"
+    - mysql_main_pod.resources[0].status.containerStatuses[0].ready == true
+  retries: 30
+  delay: 10
+
+
+
+
+- name: "生成从库列表（mysql-1, mysql-2...）"
+  set_fact:
+    slave_pods: "{{ range(1, mysql_replicas|int) | map('regex_replace', '^', mysql_name + '-') | list }}"
+  when: mysql_replicas|int > 1
+
+- name: "等待从库实例就绪"
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ namespace }}"
+    label_selectors:
+      - "app={{ mysql_name }}"
+      - "statefulset.kubernetes.io/pod-name={{ item }}"
+  register: mysql_slave_pod
+  until:
+    - mysql_slave_pod.resources is defined
+    - mysql_slave_pod.resources | length > 0
+    - mysql_slave_pod.resources[0].status.phase == "Running"
+    - mysql_slave_pod.resources[0].status.containerStatuses[0].ready == true
+  retries: 30
+  delay: 10
+  loop: "{{ slave_pods }}"
+  when: mysql_replicas|int > 1
+
+- name: "配置从库复制"
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ item }}"
+    command: >
+      mysql -u root -p$(echo {{ mysql_root_password }}) -e "
+      STOP SLAVE;
+      CHANGE MASTER TO
+        MASTER_HOST='{{ mysql_name }}-0.{{ mysql_name }}-headless.{{ namespace }}.svc.cluster.local',
+        MASTER_USER='{{ mysql_repl_user }}',
+        MASTER_PASSWORD='{{ mysql_repl_password }}',
+        MASTER_PORT={{ mysql_port }},
+        MASTER_AUTO_POSITION=1;
+      START SLAVE;
+      SHOW SLAVE STATUS\G"
+  loop: "{{ slave_pods }}"
+  when: mysql_replicas | int > 1
+  register: slave_config_result
+  until: slave_config_result.rc == 0
+  retries: 10
+  delay: 10

@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ minio_name }}
+  namespace: {{ namespace }}
+spec:
+  serviceName: {{ minio_name }}-headless  # 关联Headless Service
+  replicas: {{ minio_replicas }}
+  selector:
+    matchLabels:
+      app: {{ minio_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ minio_name }}
+    spec:
+      # 容忍控制节点污点（允许部署在Master）
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ minio_name }}
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      containers:
+        - name: minio
+          image: {{ minio_image }}
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "2Gi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+          ports:
+            - containerPort: {{ minio_port }}
+            - containerPort: {{ minio_console_port }}
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ minio_name }}-secret
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ minio_name }}-secret
+                  key: root-password
+            - name: MINIO_CONSOLE_ADDRESS
+              value: ":9001"
+            - name: MINIO_DOMAIN
+              value: {{ minio_domain }}
+            - name: MINIO_BROWSER_CONTENT_SECURITY_POLICY
+              value: "default-src * 'unsafe-inline' 'unsafe-eval';"
+          args:
+            - server
+            # 集群节点访问地址（StatefulSet固定命名格式：{name}-0、{name}-1...）
+            - http://{{ minio_name }}-{0..{{ minio_replicas | int - 1 }}}.{{ minio_name }}-headless.{{ namespace }}.svc.cluster.local/data
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+  # 存储卷模板（每个节点独立存储）
+  volumeClaimTemplates:
+    - metadata:
+        name: minio-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ minio_storage_size }}

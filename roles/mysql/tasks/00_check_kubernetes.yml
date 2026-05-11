@@ -1,0 +1,56 @@
+---
+- name: 显示当前主机的系统信息
+  ansible.builtin.debug:
+    msg:
+      - "操作系统: {{ ansible_distribution }}"
+      - "版本: {{ ansible_distribution_version }}"
+      - "CPU架构: {{ ansible_architecture }}"
+
+- name: 检查Kubernetes集群
+  kubernetes.core.k8s_info:
+    kind: Node
+    api_version: v1
+  register: k8s_nodes
+  failed_when: false
+  run_once: true
+
+- name: 验证Kubernetes集群可用性
+  ansible.builtin.assert:
+    that:
+      - k8s_nodes.resources is defined
+      - k8s_nodes.resources | length > 0
+    success_msg: "Kubernetes集群已部署，发现{{ k8s_nodes.resources | length }}个节点"
+    fail_msg: "未检测到可用的Kubernetes集群，请先部署集群"
+  run_once: true
+
+
+- name: "计算可用节点数量（排除不可调度节点）"
+  set_fact:
+    available_nodes: "{{ (k8s_nodes.resources | rejectattr('spec.unschedulable', 'defined') | list | length) | int }}"
+  run_once: true
+
+- name: "转换所有参数为整数"
+  set_fact:
+    available_nodes_int: "{{ available_nodes | int }}"
+    max_replicas_int: "{{ max_replicas | int }}"
+    min_replicas_int: "{{ min_replicas | int }}"
+  run_once: true
+
+- name: "计算可用节点数和最大实例数的较小值"
+  set_fact:
+    temp_replicas: "{{ [available_nodes_int, max_replicas_int] | min }}"
+  run_once: true
+
+- name: "确保结果不小于最小实例数"
+  set_fact:
+    mysql_replicas: "{{ [temp_replicas, min_replicas_int] | max }}"
+  run_once: true
+
+- name: "显示最终配置"
+  ansible.builtin.debug:
+    msg:
+      - "集群总节点数: {{ k8s_nodes.resources | length }}"
+      - "可用节点数（排除封锁节点）: {{ available_nodes }}"
+      - "MySQL镜像: {{ mysql_image }}"
+      - "部署模式: {% if mysql_replicas | int == 1 %}单点部署（仅主库）{% else %}多点部署（主从复制）{% endif %}"
+  run_once: true

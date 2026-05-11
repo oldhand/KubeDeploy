@@ -1,0 +1,87 @@
+---
+- name: 显示当前主机的系统信息
+  ansible.builtin.debug:
+    msg:
+      - "操作系统: {{ ansible_distribution }}"
+      - "版本: {{ ansible_distribution_version }}"
+      - "CPU架构: {{ ansible_architecture }}"
+
+- name: 检查Kubernetes集群
+  kubernetes.core.k8s_info:
+    kind: Node
+    api_version: v1
+  register: k8s_nodes
+  failed_when: false
+  run_once: true
+
+- name: 验证Kubernetes集群可用性
+  ansible.builtin.assert:
+    that:
+      - k8s_nodes.resources is defined
+      - k8s_nodes.resources | length > 0
+    success_msg: "Kubernetes集群已部署，发现{{ k8s_nodes.resources | length }}个节点"
+    fail_msg: "未检测到可用的Kubernetes集群，请先部署集群"
+  run_once: true
+
+
+- name: "计算可用节点数量（排除不可调度节点）"
+  set_fact:
+    available_nodes: "{{ (k8s_nodes.resources | rejectattr('spec.unschedulable', 'defined') | list | length) | int }}"
+  run_once: true
+
+- name: "转换参数为整数"
+  set_fact:
+    redis_total_nodes: "{{ available_nodes | int }}"
+  run_once: true
+
+
+- name: "显示最终配置"
+  ansible.builtin.debug:
+    msg:
+      - "集群总节点数: {{ k8s_nodes.resources | length }}"
+      - "可用节点数（排除封锁节点）: {{ redis_total_nodes }}"
+  run_once: true
+
+
+
+# 自动判断部署模式并设置相关变量
+- name: 自动识别单节点模式
+  ansible.builtin.set_fact:
+    redis_mode: "single"                # 部署模式：single/cluster
+    redis_cluster_enabled: "no"               # 关闭集群功能
+    deployment_kind: "Deployment"       # 单节点用Deployment
+    headless_needed: false              # 无需Headless Service
+    # 单节点资源限制（按需调整）
+    redis_resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    redis_maxmemory: "1gb"              # 单节点最大内存
+  when: redis_total_nodes | int == 1
+
+- name: 自动识别集群模式
+  ansible.builtin.set_fact:
+    redis_mode: "cluster"               # 部署模式：cluster
+    redis_cluster_enabled: "yes"              # 启用集群功能
+    deployment_kind: "StatefulSet"      # 集群用StatefulSet（稳定网络标识）
+    headless_needed: true               # 需Headless Service用于集群通信
+    cluster_replicas: 1                 # 每个主节点的从节点数（1=3主3从）
+    # 集群节点资源限制（按需调整）
+    redis_resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1000m"
+        memory: "2Gi"
+    redis_maxmemory: "2gb"              # 集群节点最大内存
+  when: redis_total_nodes | int >= 3
+
+- name: 校验NodePort端口范围
+  ansible.builtin.assert:
+    that:
+      - redis_nodeport | int >= 30000
+      - redis_nodeport | int <= 32767

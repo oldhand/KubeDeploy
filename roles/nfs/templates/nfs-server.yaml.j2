@@ -161,3 +161,43 @@ spec:
       protocol: UDP
   selector:
     app: nfs-server
+
+
+---
+# 新增：NFS Headless Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nfs-server-headless
+  namespace: {{ nfs_namespace }}
+  labels:
+    app: nfs-server
+spec:
+  clusterIP: None
+  selector:
+    app: nfs-server
+  ports:
+    - name: nfs-tcp
+      port: 2049
+      targetPort: 2049
+      protocol: TCP
+    - name: nfs-udp
+      port: 2049
+      targetPort: 2049
+      protocol: UDP
+    - name: mountd-tcp
+      port: 20048
+      targetPort: 20048
+      protocol: TCP
+    - name: mountd-udp
+      port: 20048
+      targetPort: 20048
+      protocol: UDP
+    - name: rpc-tcp
+      port: 111
+      targetPort: 111
+      protocol: TCP
+    - name: rpc-udp
+      port: 111
+      targetPort: 111
+      protocol: UDP

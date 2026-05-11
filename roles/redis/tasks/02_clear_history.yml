@@ -1,0 +1,31 @@
+---
+
+- name: 清理 Redis 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n {{ namespace }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n {{ namespace }} --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "{{ redis_name }}" }
+    - { kind: StatefulSet, name: "{{ redis_name }}" }
+    - { kind: ReplicaSet, name: "{{ redis_name }}" }
+    - { kind: Job, name: "{{ redis_name }}" }
+    - { kind: Pod, name: "{{ redis_name }}" }
+    - { kind: Service, name: "{{ redis_name }}" }
+    - { kind: ConfigMap, name: "{{ redis_name }}" }
+    - { kind: Secret, name: "{{ redis_name }}" }
+    - { kind: PersistentVolumeClaim, name: "{{ redis_name }}" }
+  failed_when: false
+  run_once: true
+
+
+- name: 清理 Redis 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "{{ redis_name }}" }
+  failed_when: false
+  run_once: true
+

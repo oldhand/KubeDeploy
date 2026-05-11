@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ mysql_name }}"
+  namespace: "{{ namespace }}"
+  labels:
+    app: mysql
+spec:
+  serviceName: "{{ mysql_name }}-headless"
+  replicas: {{ mysql_replicas | int }}
+  selector:
+    matchLabels:
+      app: "{{ mysql_name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ mysql_name }}"
+        statefulset: mysql
+    spec:
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"  # 存在该污点即容忍
+          effect: "NoSchedule"  # 容忍的污点效果（Master 污点默认是 NoSchedule）
+{% if mysql_replicas | int > 1 %}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ mysql_name }}
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+{% endif %}
+      containers:
+        - name: "{{ mysql_name }}"
+          image: "{{ mysql_image }}"
+          ports:
+            - containerPort: {{ mysql_port }}
+              name: "{{ mysql_name }}"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ mysql_name }}-secret"
+                  key: mysql-root-password
+            - name: MYSQL_REPLICATION_USER
+              value: "{{ mysql_repl_user }}"
+            - name: MYSQL_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ mysql_name }}-secret"
+                  key: mysql-repl-password
+            - name: TZ
+              value: "Asia/Shanghai"
+          command:
+            - sh
+            - -c
+            - |
+              # 1. 打印 Pod 名称（调试用，确认格式）
+              POD_NAME=$(cat /etc/podinfo/name)
+              echo "Current Pod Name: $POD_NAME"
+              # 2. 提取 Pod 序号（处理多 '-' 场景，取最后一段）
+              ORDINAL=$(echo "$POD_NAME" | awk -F'-' '{print $NF}')
+              # 3. 空值判断（避免语法错误）
+              if [ -z "$ORDINAL" ]; then
+              echo "Error: Failed to get ORDINAL from Pod Name"
+              exit 1
+              fi
+              # 4. 计算 server-id（确保为整数）
+              SERVER_ID=$((100 + ORDINAL))
+              # 5. 设置 read-only（主库 ORDINAL=0 为可写，其他为只读）
+              READ_ONLY=1
+              if [ "$ORDINAL" -eq 0 ]; then
+              READ_ONLY=0
+              echo "This is Master (ORDINAL=$ORDINAL), set read-only=0"
+              else
+              echo "This is Slave (ORDINAL=$ORDINAL), set read-only=1"
+              fi
+              # 6. 动态生成配置（覆盖原配置，确保生效）
+              echo "[mysqld]" > /etc/mysql/conf.d/dynamic.cnf
+              echo "server-id=$SERVER_ID" >> /etc/mysql/conf.d/dynamic.cnf
+              echo "read-only=$READ_ONLY" >> /etc/mysql/conf.d/dynamic.cnf
+              # 7. 启动 MySQL（执行官方入口脚本）
+              exec docker-entrypoint.sh mysqld
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'mysqladmin ping -uroot -p"${MYSQL_ROOT_PASSWORD}"'
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SELECT 1"'
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: "{{ mysql_name }}-config"
+              mountPath: /etc/mysql/conf.d/my.cnf
+              subPath: my.cnf
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+            - name: podinfo
+              mountPath: /etc/podinfo
+              readOnly: false
+            - name: zoneinfo
+              mountPath: /usr/share/zoneinfo
+              readOnly: true
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d/create_repl_user.sql
+              subPath: create_repl_user.sql
+      volumes:
+        - name: "{{ mysql_name }}-config"
+          configMap:
+            name: "{{ mysql_name }}-config"
+        - name: podinfo
+          downwardAPI:
+            items:
+              - path: "name"
+                fieldRef:
+                  fieldPath: metadata.name
+        - name: mysql-data
+          hostPath:
+            path: "{{ mysql_host_path }}/mysql-data"
+            type: DirectoryOrCreate
+        - name: zoneinfo
+          hostPath:
+            path: /usr/share/zoneinfo  # 宿主机时区数据目录
+            type: Directory
+        - name: init-scripts
+          configMap:
+            name: mysql-init-scripts
+  volumeClaimTemplates: []

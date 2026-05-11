@@ -1,0 +1,130 @@
+---
+- name: "确保 MySQL 主机目录存在并设置正确权限"
+  ansible.builtin.file:
+    path: "{{ mysql_host_path }}"
+    state: directory
+    mode: '0777'  # 给予读写执行权限，适合 MySQL 数据目录
+    owner: '999'    # MySQL 容器内默认用户 ID 是 999
+    group: '999'    # MySQL 容器内默认用户组 ID 是 999
+    recurse: true
+
+- name: "创建命名空间"
+  kubernetes.core.k8s:
+    name: "{{ namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  run_once: true
+
+- name: "创建 MySQL Secret"
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ mysql_name }}-secret"
+        namespace: "{{ namespace }}"
+      type: Opaque
+      data:
+        mysql-root-password: "{{ mysql_root_password | b64encode }}"
+        mysql-repl-password: "{{ mysql_repl_password | b64encode }}"
+  run_once: true
+
+- name: "创建MySQL ConfigMap"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ mysql_name }}-config"
+        namespace: "{{ namespace }}"
+      data:
+        my.cnf: |
+          [mysqld]
+          user=mysql
+          default-storage-engine=InnoDB
+          character-set-server=utf8mb4
+          collation-server=utf8mb4_unicode_ci
+          port={{ mysql_port }}
+          bind-address=0.0.0.0
+          
+          # 主从复制配置 - 使用环境变量注入的序号作为server-id
+          log-bin=mysql-bin
+          binlog-format=ROW
+          expire_logs_days=7
+          relay-log=mysql-relay-bin
+          log-slave-updates=1
+          skip-slave-start=1
+  run_once: true
+
+- name: "创建用户 ConfigMap"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: mysql-init-scripts
+        namespace: "{{ namespace }}"
+      data:
+        create_repl_user.sql: |
+          CREATE USER IF NOT EXISTS '{{ mysql_repl_user }}'@'%' IDENTIFIED BY '{{ mysql_repl_password }}';
+          GRANT REPLICATION SLAVE ON *.* TO '{{ mysql_repl_user }}'@'%';
+          FLUSH PRIVILEGES;
+  run_once: true
+
+- name: "确保 mysql_replicas 是整数"
+  set_fact:
+    mysql_replicas_int: "{{ mysql_replicas | int }}"
+
+- name: 渲染 Deployment/StatefulSet 模板
+  ansible.builtin.template:
+    src: mysql-deploy.yaml.j2
+    dest: /tmp/mysql-deploy.yaml
+    mode: '0644'
+  run_once: true
+
+- name: 应用 Mysql Deployment/StatefulSet
+  kubernetes.core.k8s:
+    src: /tmp/mysql-deploy.yaml
+    state: present
+
+###########################################################################
+# 5. 创建Service
+###########################################################################
+- name: "创建Headless Service"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ mysql_name }}-headless"
+        namespace: "{{ namespace }}"
+      spec:
+        clusterIP: None
+        selector:
+          app: "{{ mysql_name }}"
+        ports:
+          - port: "{{ mysql_port }}"
+            name: mysql
+  run_once: true
+
+- name: "创建NodePort Service"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "{{ mysql_name }}-nodeport"
+        namespace: "{{ namespace }}"
+      spec:
+        type: NodePort
+        selector:
+          app: "{{ mysql_name }}"
+        ports:
+          - port: "{{ mysql_port }}"
+            targetPort: "{{ mysql_port }}"
+            nodePort: "{{ mysql_nodeport }}"
+  run_once: true

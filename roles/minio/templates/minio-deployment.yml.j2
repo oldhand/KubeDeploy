@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ minio_name }}
-  namespace: {{ namespace }}
+  name: {{ minio_name | to_json }}
+  namespace: {{ namespace | to_json }}
 spec:
   replicas: {{ minio_replicas }}
   selector:
     matchLabels:
-      app: {{ minio_name }}
+      app: {{ minio_name | to_json }}
   template:
     metadata:
       labels:
-        app: {{ minio_name }}
+        app: {{ minio_name | to_json }}
     spec:
       # 容忍控制节点污点（允许部署在Master）
       tolerations:
@@ -23,7 +23,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: minio
-          image: {{ minio_image }}
+          image: {{ minio_image | to_json }}
           resources:
             requests:
               cpu: "500m"

@@ -53,6 +53,8 @@
           # 主从复制配置 - 使用环境变量注入的序号作为server-id
           log-bin=mysql-bin
           binlog-format=ROW
+          gtid-mode=ON
+          enforce-gtid-consistency=ON
           expire_logs_days=7
           relay-log=mysql-relay-bin
           log-slave-updates=1

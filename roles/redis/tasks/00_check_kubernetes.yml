@@ -31,7 +31,7 @@
 
 - name: "转换参数为整数"
   set_fact:
-    redis_total_nodes: "{{ available_nodes | int }}"
+    redis_available_nodes: "{{ available_nodes | int }}"
   run_once: true
 
 
@@ -39,7 +39,7 @@
   ansible.builtin.debug:
     msg:
       - "集群总节点数: {{ k8s_nodes.resources | length }}"
-      - "可用节点数（排除封锁节点）: {{ redis_total_nodes }}"
+      - "可用节点数（排除封锁节点）: {{ redis_available_nodes }}"
   run_once: true
 
 
@@ -51,6 +51,7 @@
     redis_cluster_enabled: "no"               # 关闭集群功能
     deployment_kind: "Deployment"       # 单节点用Deployment
     headless_needed: false              # 无需Headless Service
+    redis_total_nodes: 1
     # 单节点资源限制（按需调整）
     redis_resources:
       requests:
@@ -60,7 +61,8 @@
         cpu: "500m"
         memory: "1Gi"
     redis_maxmemory: "1gb"              # 单节点最大内存
-  when: redis_total_nodes | int == 1
+  when: redis_available_nodes | int < 3
+  run_once: true
 
 - name: 自动识别集群模式
   ansible.builtin.set_fact:
@@ -68,7 +70,8 @@
     redis_cluster_enabled: "yes"              # 启用集群功能
     deployment_kind: "StatefulSet"      # 集群用StatefulSet（稳定网络标识）
     headless_needed: true               # 需Headless Service用于集群通信
-    cluster_replicas: 1                 # 每个主节点的从节点数（1=3主3从）
+    redis_total_nodes: "{{ redis_available_nodes | int }}"
+    cluster_replicas: "{{ 1 if redis_available_nodes | int >= 6 else 0 }}"
     # 集群节点资源限制（按需调整）
     redis_resources:
       requests:
@@ -78,7 +81,8 @@
         cpu: "1000m"
         memory: "2Gi"
     redis_maxmemory: "2gb"              # 集群节点最大内存
-  when: redis_total_nodes | int >= 3
+  when: redis_available_nodes | int >= 3
+  run_once: true
 
 - name: 校验NodePort端口范围
   ansible.builtin.assert:

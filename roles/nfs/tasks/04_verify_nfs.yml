@@ -22,7 +22,7 @@
       - "🎉 NFS 服务端已成功部署并在 K8s 集群内运行！🎉"
       - ""
       - "【基本配置信息】"
-      - "数据物理存放路径 : {{ nfs_node_name }} 节点上的 {{ nfs_host_path }}"
+      - "数据物理存放路径 : NFS Pod 所在节点上的 {{ nfs_host_path }}"
       - "容器内真实目录   : {{ nfs_export_path }}"
       - "NFS Pod 内部 IP  : {{ nfs_pod_ip.stdout }}"
       - "NFS Service IP   : {{ nfs_svc_ip.stdout }} (用于集群内挂载)"

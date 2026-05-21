@@ -17,7 +17,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual-nfs
   hostPath:
-    path: {{ nfs_host_path }}
+    path: {{ nfs_host_path | to_json }}
     type: DirectoryOrCreate
 
 ---
@@ -54,8 +54,10 @@ spec:
       labels:
         app: nfs-server
     spec:
+{% if nfs_node_name | default('') | string | length > 0 %}
       nodeSelector:
-        kubernetes.io/hostname: {{ nfs_node_name }}
+        kubernetes.io/hostname: {{ nfs_node_name | to_json }}
+{% endif %}
       tolerations:
         - key: "node-role.kubernetes.io/master"
           operator: "Exists"
@@ -87,8 +89,8 @@ spec:
               rpc.mountd -F -p 20048 -N 4 -V 3 &
 
               echo ">>> exporting filesystem"
-              mkdir -p {{ nfs_share_dir | default("/nfs-share") }}
-              chmod 777 {{ nfs_share_dir | default("/nfs-share") }}
+              mkdir -p {{ nfs_share_dir | default("/nfs-share") | quote }}
+              chmod 777 {{ nfs_share_dir | default("/nfs-share") | quote }}
 
               echo "{{ nfs_share_dir | default("/nfs-share") }} *(rw,sync,no_subtree_check,no_root_squash,insecure)" > /etc/exports
               exportfs -rv
@@ -123,7 +125,7 @@ spec:
             periodSeconds: 5
             failureThreshold: 24
           volumeMounts:
-            - mountPath: {{ nfs_export_path }}
+            - mountPath: {{ nfs_export_path | to_json }}
               name: nfs-data
       volumes:
         - name: nfs-data

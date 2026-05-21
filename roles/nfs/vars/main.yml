@@ -18,10 +18,10 @@ nfs_pvc_size: "50Gi"
 # 宿主机上的具体物理路径 (数据真实存放地)
 nfs_host_path: "/data/nfs-share"
 
-# 自动获取目标节点主机名
-# 用于将 PV 和 Pod 绑定调度到这台包含 hostPath 的物理机上
-# 如 Kubernetes 节点名不是系统主机名，可在 inventory/group_vars 中显式覆盖该值。
-nfs_node_name: "{{ ansible_hostname | default(inventory_hostname) }}"
+# 可选：将 NFS Pod 固定到指定 Kubernetes 节点。
+# 默认不设置 nodeSelector，由调度器选择节点；如需固定节点，请填写
+# `kubectl get nodes --show-labels` 中 kubernetes.io/hostname 对应的值。
+nfs_node_name: ""
 
 # NFS Pod 启动等待时间
 nfs_wait_timeout: "300s"

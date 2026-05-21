@@ -10,3 +10,4 @@ redis_host_path: "/data/redis"  # 所有节点需提前创建此目录
 redis_image: "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/redis:8.2.1"
 redis_password: "!qaz2Wsx"  # 集群密码
 redis_storage_size: "10Gi"  # Redis存储大小
+redis_storage_class: "redis-storage"

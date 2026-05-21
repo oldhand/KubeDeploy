@@ -107,6 +107,7 @@
   kubernetes.core.k8s:
     src: /tmp/redis-deploy-sts.yaml
     state: present
+  run_once: true
 
 # 6. 服务配置（自动适配模式）
 - name: 创建Redis Headless Service（集群模式）
@@ -171,7 +172,7 @@
     kind: Pod
     namespace: "{{ namespace }}"
     label_selectors:
-      - app = {{ redis_name }}  # 筛选Redis Pod
+      - "app={{ redis_name }}"  # 筛选Redis Pod
   register: redis_pod_status
   until:
     - redis_pod_status.resources | map(attribute='status.phase') | unique == ['Running']
@@ -193,4 +194,3 @@
       --cluster-yes  # 自动确认集群创建（无需手动输入yes）
   when: redis_mode == "cluster"
   run_once: true
-

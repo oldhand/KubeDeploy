@@ -14,6 +14,7 @@
     - { kind: ConfigMap, name: "{{ minio_name }}" }
     - { kind: Secret, name: "{{ minio_name }}" }
     - { kind: PersistentVolumeClaim, name: "{{ minio_name }}" }
+    - { kind: PersistentVolumeClaim, name: "minio-data-{{ minio_name }}" }
   failed_when: false
   run_once: true
 
@@ -27,4 +28,3 @@
     - { kind: PersistentVolume, name: "{{ minio_name }}" }
   failed_when: false
   run_once: true
-

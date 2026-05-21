@@ -31,7 +31,7 @@
 
 - name: "转换参数为整数"
   set_fact:
-    minio_total_nodes: "{{ available_nodes | int }}"
+    minio_available_nodes: "{{ available_nodes | int }}"
   run_once: true
 
 
@@ -39,7 +39,7 @@
   ansible.builtin.debug:
     msg:
       - "集群总节点数: {{ k8s_nodes.resources | length }}"
-      - "可用节点数（排除封锁节点）: {{ minio_total_nodes }}"
+      - "可用节点数（排除封锁节点）: {{ minio_available_nodes }}"
   run_once: true
 
 - name: 单节点配置
@@ -48,7 +48,10 @@
     minio_cluster_enabled: "no"
     deployment_kind: "Deployment"
     headless_needed: false
-  when: minio_total_nodes | int == 1
+    minio_total_nodes: 1
+    minio_replicas: 1
+  when: minio_available_nodes | int < 4
+  run_once: true
 
 - name: 集群模式配置
   ansible.builtin.set_fact:
@@ -56,8 +59,10 @@
     minio_cluster_enabled: "yes"
     deployment_kind: "StatefulSet"
     headless_needed: true
-    minio_replicas: "{{ minio_total_nodes | int }}"
-  when: minio_total_nodes | int > 1  # MinIO 分布式至少需要2节点
+    minio_total_nodes: "{{ minio_available_nodes | int }}"
+    minio_replicas: "{{ minio_available_nodes | int }}"
+  when: minio_available_nodes | int >= 4
+  run_once: true
 
 - name: 校验 NodePort 端口范围
   ansible.builtin.assert:
@@ -66,4 +71,3 @@
       - minio_nodeport | int <= 32767
       - minio_console_nodeport | int >= 30000
       - minio_console_nodeport | int <= 32767
-

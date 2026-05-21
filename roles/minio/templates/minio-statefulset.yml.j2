@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ minio_name }}
-  namespace: {{ namespace }}
+  name: {{ minio_name | to_json }}
+  namespace: {{ namespace | to_json }}
 spec:
-  serviceName: {{ minio_name }}-headless  # 关联Headless Service
+  serviceName: {{ (minio_name ~ "-headless") | to_json }}  # 关联Headless Service
   replicas: {{ minio_replicas }}
   selector:
     matchLabels:
-      app: {{ minio_name }}
+      app: {{ minio_name | to_json }}
   template:
     metadata:
       labels:
-        app: {{ minio_name }}
+        app: {{ minio_name | to_json }}
     spec:
       # 容忍控制节点污点（允许部署在Master）
       tolerations:
@@ -31,12 +31,12 @@ spec:
                     - key: app
                       operator: In
                       values:
-                        - {{ minio_name }}
+                        - {{ minio_name | to_json }}
                 topologyKey: kubernetes.io/hostname
               weight: 100
       containers:
         - name: minio
-          image: {{ minio_image }}
+          image: {{ minio_image | to_json }}
           resources:
             requests:
               cpu: "1000m"
@@ -61,7 +61,7 @@ spec:
             - name: MINIO_CONSOLE_ADDRESS
               value: ":9001"
             - name: MINIO_DOMAIN
-              value: {{ minio_domain }}
+              value: {{ minio_domain | to_json }}
             - name: MINIO_BROWSER_CONTENT_SECURITY_POLICY
               value: "default-src * 'unsafe-inline' 'unsafe-eval';"
           args:

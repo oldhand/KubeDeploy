@@ -92,6 +92,7 @@
   kubernetes.core.k8s:
     src: /tmp/deploy-minio.yaml
     state: present
+  run_once: true
 
 
 # 服务配置（自动适配模式）
@@ -113,6 +114,7 @@
           - port: "{{ minio_console_port }}"
             name: console
   run_once: true
+  when: minio_mode == "distributed"
 
 - name: 创建 NodePort Service（外部/集群内访问Minio）
   kubernetes.core.k8s:
@@ -158,7 +160,7 @@
     kind: Pod
     namespace: "{{ namespace }}"
     label_selectors:
-      - app = {{ minio_name }}  # 筛选Minio Pod
+      - "app={{ minio_name }}"  # 筛选Minio Pod
   register: minio_pod_status
   until:
     - minio_pod_status.resources | map(attribute='status.phase') | unique == ['Running']

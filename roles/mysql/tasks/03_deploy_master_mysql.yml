@@ -90,6 +90,7 @@
   kubernetes.core.k8s:
     src: /tmp/mysql-deploy.yaml
     state: present
+  run_once: true
 
 ###########################################################################
 # 5. 创建Service

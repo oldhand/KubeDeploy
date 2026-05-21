@@ -5,22 +5,73 @@
     state: directory
     mode: '0777'
 
+- name: 加载 nfsd 内核模块
+  ansible.builtin.command: modprobe nfsd
+  changed_when: false
+  become: true
+
 - name: Ensure target directory exists for rendered templates
   file:
     path: /tmp/nfs-deploy
     state: directory
+  run_once: true
 
 - name: Render NFS server templates
   template:
     src: nfs-server.yaml.j2
     dest: /tmp/nfs-deploy/nfs-server.yaml
+  run_once: true
 
 - name: Apply NFS server to Kubernetes
   command: kubectl apply -f /tmp/nfs-deploy/nfs-server.yaml
   register: nfs_deploy_result
   changed_when: "'created' in nfs_deploy_result.stdout or 'configured' in nfs_deploy_result.stdout"
+  run_once: true
 
+- name: 等待 NFS Deployment 完成滚动发布
+  block:
+    - name: 等待 NFS Deployment 可用 (超时 {{ nfs_wait_timeout }})
+      command: kubectl rollout status deployment/nfs-server -n {{ nfs_namespace }} --timeout={{ nfs_wait_timeout }}
+      changed_when: false
 
-- name: 等待 NFS Pod 启动就绪 (超时120s)
-  command: kubectl wait --for=condition=Ready pod -l app=nfs-server -n {{ nfs_namespace }} --timeout=120s
-  changed_when: false
+    - name: 等待 NFS Pod 启动就绪 (超时 {{ nfs_wait_timeout }})
+      command: kubectl wait --for=condition=Ready pod -l app=nfs-server -n {{ nfs_namespace }} --timeout={{ nfs_wait_timeout }}
+      changed_when: false
+  rescue:
+    - name: 获取 NFS Pod 状态
+      command: kubectl get pod -l app=nfs-server -n {{ nfs_namespace }} -o wide
+      register: nfs_pod_status
+      changed_when: false
+      failed_when: false
+
+    - name: 获取 NFS Pod 详情
+      command: kubectl describe pod -l app=nfs-server -n {{ nfs_namespace }}
+      register: nfs_pod_describe
+      changed_when: false
+      failed_when: false
+
+    - name: 获取 NFS Pod 日志
+      command: kubectl logs -l app=nfs-server -n {{ nfs_namespace }} --all-containers --tail=200
+      register: nfs_pod_logs
+      changed_when: false
+      failed_when: false
+
+    - name: 获取 NFS Namespace 事件
+      command: kubectl get events -n {{ nfs_namespace }} --sort-by=.lastTimestamp
+      register: nfs_events
+      changed_when: false
+      failed_when: false
+
+    - name: 输出 NFS 启动失败诊断信息
+      ansible.builtin.fail:
+        msg:
+          - "NFS Pod 未能在 {{ nfs_wait_timeout }} 内就绪。"
+          - "Pod 状态:"
+          - "{{ nfs_pod_status.stdout | default('') }}"
+          - "Pod 详情:"
+          - "{{ nfs_pod_describe.stdout | default('') }}"
+          - "Pod 日志:"
+          - "{{ nfs_pod_logs.stdout | default('') }}"
+          - "Namespace 事件:"
+          - "{{ nfs_events.stdout | default('') }}"
+  run_once: true

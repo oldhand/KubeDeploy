@@ -18,9 +18,13 @@ nfs_pvc_size: "50Gi"
 # 宿主机上的具体物理路径 (数据真实存放地)
 nfs_host_path: "/data/nfs-share"
 
-# 自动获取 Ansible inventory 中当前运行的目标节点名
+# 自动获取目标节点主机名
 # 用于将 PV 和 Pod 绑定调度到这台包含 hostPath 的物理机上
-nfs_node_name: "{{ inventory_hostname }}"
+# 如 Kubernetes 节点名不是系统主机名，可在 inventory/group_vars 中显式覆盖该值。
+nfs_node_name: "{{ ansible_hostname | default(inventory_hostname) }}"
+
+# NFS Pod 启动等待时间
+nfs_wait_timeout: "300s"
 
 # --- 网络相关配置 (新增) ---
 # 对外暴露的 NodePort 端口，用于集群外部机器进行挂载验证

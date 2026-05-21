@@ -66,6 +66,7 @@ spec:
       containers:
         - name: nfs-server
           image: {{ nfs_server_image }}
+          imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -115,6 +116,12 @@ spec:
               protocol: UDP
           securityContext:
             privileged: true
+          readinessProbe:
+            tcpSocket:
+              port: 2049
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 24
           volumeMounts:
             - mountPath: {{ nfs_export_path }}
               name: nfs-data

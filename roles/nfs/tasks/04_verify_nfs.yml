@@ -5,6 +5,7 @@
     -o jsonpath='{.items[0].status.podIP}'
   register: nfs_pod_ip
   changed_when: false
+  run_once: true
 
 - name: 获取 NFS Service 的 ClusterIP
   command: >
@@ -12,6 +13,7 @@
     -o jsonpath='{.spec.clusterIP}'
   register: nfs_svc_ip
   changed_when: false
+  run_once: true
 
 - name: 打印 NFS 验证方法与步骤
   debug:
@@ -66,3 +68,4 @@
       - "请登录到 {{ nfs_node_name }} 节点，检查底层物理目录，确认数据是否真实落盘："
       - "        cat {{ nfs_host_path }}/test.txt"
       - "======================================================================="
+  run_once: true
